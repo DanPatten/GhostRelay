@@ -44,116 +44,31 @@
   50% { box-shadow: 0 0 0 10px rgba(232, 84, 62, 0); }
 }
 
-/* Toolbar (shown in selection mode) */
-#tagrelay-toolbar {
+/* Clear button (trash icon) */
+#tagrelay-btn-clear {
   position: fixed;
-  bottom: 68px;
-  right: 24px;
+  bottom: 24px;
+  right: 68px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: #888;
+  color: #fff;
+  border: none;
+  cursor: pointer;
   z-index: 2147483647;
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-}
-
-#tagrelay-toolbar button {
-  padding: 6px 14px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.25);
-  transition: opacity 0.15s;
-}
-
-#tagrelay-toolbar button:hover {
-  opacity: 0.85;
-}
-
-#tagrelay-btn-clear {
-  background: #888;
-}
-
-/* Context textbox */
-#tagrelay-context {
-  width: 200px;
-  min-height: 48px;
-  max-height: 120px;
-  padding: 6px 8px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-  font-size: 12px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  resize: vertical;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-  box-sizing: border-box;
-}
-
-#tagrelay-context:focus {
-  outline: none;
-  border-color: #4A90D9;
-}
-
-/* Tag list */
-#tagrelay-tag-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  max-height: 200px;
-  overflow-y: auto;
-  width: 200px;
-}
-
-.tagrelay-tag-entry {
-  display: flex;
   align-items: center;
-  gap: 4px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  padding: 3px 6px;
-  font-size: 11px;
-  color: #333;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+  justify-content: center;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  transition: all 0.2s ease;
+  padding: 0;
 }
 
-.tagrelay-tag-entry .tagrelay-tag-num {
+#tagrelay-btn-clear:hover {
   background: #E8543E;
-  color: #fff;
-  font-weight: 700;
-  min-width: 18px;
-  height: 18px;
-  line-height: 18px;
-  text-align: center;
-  border-radius: 9px;
-  font-size: 10px;
-  flex-shrink: 0;
-}
-
-.tagrelay-tag-entry .tagrelay-tag-text {
-  flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.tagrelay-tag-entry .tagrelay-tag-remove {
-  background: none;
-  border: none;
-  color: #999;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 700;
-  line-height: 1;
-  padding: 0 2px;
-  box-shadow: none;
-  flex-shrink: 0;
-}
-
-.tagrelay-tag-entry .tagrelay-tag-remove:hover {
-  color: #E8543E;
+  transform: scale(1.1);
+  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
 }
 
 /* Hover highlight */
@@ -164,7 +79,7 @@
 
 /* Tag badge */
 .tagrelay-badge {
-  position: absolute;
+  position: fixed;
   background: #E8543E;
   color: #fff;
   font-size: 11px;
@@ -177,9 +92,93 @@
   border-radius: 10px;
   padding: 0 5px;
   z-index: 2147483646;
-  pointer-events: none;
+  pointer-events: auto;
   box-shadow: 0 1px 4px rgba(0,0,0,0.3);
   user-select: none;
+  cursor: pointer;
+}
+
+/* Annotation dot indicator on badge */
+.tagrelay-badge.has-annotation::after {
+  content: "";
+  position: absolute;
+  top: -3px;
+  right: -3px;
+  width: 8px;
+  height: 8px;
+  background: #4A90D9;
+  border-radius: 50%;
+  border: 1px solid #fff;
+}
+
+/* Annotation popover */
+.tagrelay-popover {
+  position: fixed;
+  z-index: 2147483647;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+}
+
+.tagrelay-popover-preview {
+  font-size: 12px;
+  color: #333;
+  line-height: 1.4;
+  padding: 2px 0;
+  max-width: 200px;
+  word-wrap: break-word;
+}
+
+.tagrelay-popover-edit {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.tagrelay-popover-text {
+  width: 200px;
+  min-height: 56px;
+  max-height: 120px;
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: inherit;
+  resize: vertical;
+  box-sizing: border-box;
+  line-height: 1.4;
+}
+
+.tagrelay-popover-text:focus {
+  outline: none;
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+}
+
+.tagrelay-popover-remove {
+  background: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  color: #666;
+  cursor: pointer;
+  font-size: 11px;
+  font-family: inherit;
+  line-height: 1;
+  padding: 5px 0;
+  text-align: center;
+  transition: all 0.15s;
+}
+
+.tagrelay-popover-remove:hover {
+  background: #E8543E;
+  border-color: #E8543E;
+  color: #fff;
 }
 
 /* Tagged element outline */

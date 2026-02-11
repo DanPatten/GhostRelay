@@ -3,7 +3,7 @@
   "name": "TagRelay",
   "version": "1.0.0",
   "description": "Tag browser elements and relay them to AI coding assistants via MCP",
-  "permissions": ["activeTab", "storage"],
+  "permissions": ["activeTab", "storage", "tabs"],
   "host_permissions": ["http://localhost/*"],
   "action": {
     "default_popup": "popup.html",

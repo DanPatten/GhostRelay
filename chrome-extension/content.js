@@ -4,18 +4,19 @@
   window.__tagrelay_loaded = true;
 
   let selectionMode = false;
-  let taggedElements = []; // { el, badge, data }
+  let taggedElements = []; // { el, badge, popover, popoverMode, data }
   let hoveredEl = null;
   let serverPort = 7890;
   let screenshotEnabled = false;
   let enabled = false;
   let eventSource = null;
+  const currentHostname = location.hostname;
 
   // Load settings
-  chrome.storage.sync.get({ port: 7890, screenshot: false, enabled: false }, (s) => {
+  chrome.storage.sync.get({ port: 7890, screenshot: false, enabledDomains: {} }, (s) => {
     serverPort = s.port;
     screenshotEnabled = s.screenshot;
-    enabled = s.enabled;
+    enabled = !!(s.enabledDomains || {})[currentHostname];
     applyEnabledState();
     connectSSE();
   });
@@ -29,8 +30,8 @@
     if (changes.screenshot) {
       screenshotEnabled = changes.screenshot.newValue;
     }
-    if (changes.enabled) {
-      enabled = changes.enabled.newValue;
+    if (changes.enabledDomains) {
+      enabled = !!(changes.enabledDomains.newValue || {})[currentHostname];
       applyEnabledState();
     }
   });
@@ -68,48 +69,33 @@
   });
   document.documentElement.appendChild(fab);
 
-  // --- Toolbar ---
-  const toolbar = document.createElement("div");
-  toolbar.id = "tagrelay-toolbar";
-  toolbar.style.display = "none";
-
-  // Context textbox
-  const contextInput = document.createElement("textarea");
-  contextInput.id = "tagrelay-context";
-  contextInput.placeholder = "What should change? (optional)";
-  contextInput.addEventListener("click", (e) => e.stopPropagation());
-  contextInput.addEventListener("keydown", (e) => e.stopPropagation());
-  contextInput.addEventListener("keyup", (e) => e.stopPropagation());
-  contextInput.addEventListener("change", () => syncTags());
-
-  // Tag list
-  const tagList = document.createElement("div");
-  tagList.id = "tagrelay-tag-list";
-
+  // --- Clear Button (trash icon, shown in selection mode) ---
   const btnClear = document.createElement("button");
   btnClear.id = "tagrelay-btn-clear";
-  btnClear.textContent = "Clear All";
+  btnClear.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+  btnClear.title = "Clear all tags";
+  btnClear.style.display = "none";
   btnClear.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
     clearAllTags();
     syncTags();
   });
-
-  toolbar.appendChild(contextInput);
-  toolbar.appendChild(tagList);
-  toolbar.appendChild(btnClear);
-  document.documentElement.appendChild(toolbar);
+  document.documentElement.appendChild(btnClear);
 
   // --- Selection Mode ---
   function toggleSelectionMode() {
     selectionMode = !selectionMode;
     fab.classList.toggle("active", selectionMode);
-    toolbar.style.display = selectionMode ? "flex" : "none";
+    updateClearButton();
     if (!selectionMode && hoveredEl) {
       hoveredEl.classList.remove("tagrelay-highlight");
       hoveredEl = null;
     }
+  }
+
+  function updateClearButton() {
+    btnClear.style.display = (selectionMode && taggedElements.length > 0) ? "flex" : "none";
   }
 
   // --- Unique CSS Selector Generator ---
@@ -139,13 +125,40 @@
     return parts.join(" > ");
   }
 
+  // --- Richer Tag Data Helpers ---
+  function getAttributes(el) {
+    const keys = ["id", "class", "role", "aria-label", "href", "src", "name", "placeholder", "type", "alt", "title", "data-testid"];
+    const attrs = {};
+    for (const key of keys) {
+      const val = el.getAttribute(key);
+      if (val != null && val !== "") attrs[key] = val;
+    }
+    return Object.keys(attrs).length > 0 ? attrs : undefined;
+  }
+
+  function getParentContext(el) {
+    const ancestors = [];
+    let current = el.parentElement;
+    let depth = 0;
+    while (current && current !== document.documentElement && depth < 3) {
+      let desc = current.tagName.toLowerCase();
+      if (current.classList.length > 0) desc += "." + Array.from(current.classList).join(".");
+      ancestors.push(desc);
+      current = current.parentElement;
+      depth++;
+    }
+    return ancestors.length > 0 ? ancestors : undefined;
+  }
+
   // --- Tagging ---
   function isTagRelayUI(el) {
+    if (!el || !el.closest) return false;
     return (
       el === fab ||
-      el === toolbar ||
-      toolbar.contains(el) ||
-      el.classList.contains("tagrelay-badge")
+      el.closest("#tagrelay-fab") ||
+      el.closest("#tagrelay-btn-clear") ||
+      el.closest(".tagrelay-badge") ||
+      el.closest(".tagrelay-popover")
     );
   }
 
@@ -155,9 +168,181 @@
 
   function positionBadge(badge, el) {
     const rect = el.getBoundingClientRect();
-    badge.style.top = `${window.scrollY + rect.top - 10}px`;
-    badge.style.left = `${window.scrollX + rect.right - 10}px`;
+    const margin = 4;
+
+    // Hide badge if element is entirely off-screen
+    const offScreen =
+      rect.right < 0 ||
+      rect.left > window.innerWidth ||
+      rect.bottom < 0 ||
+      rect.top > window.innerHeight;
+    badge.style.display = offScreen ? "none" : "";
+    if (offScreen) return;
+
+    // Position at element's top-right corner, clamped to viewport
+    let top = rect.top - 10;
+    let left = rect.right - 10;
+    top = Math.max(margin, Math.min(top, window.innerHeight - 24 - margin));
+    left = Math.max(margin, Math.min(left, window.innerWidth - 30 - margin));
+    badge.style.top = `${top}px`;
+    badge.style.left = `${left}px`;
   }
+
+  function positionPopover(popover, badge) {
+    const badgeRect = badge.getBoundingClientRect();
+    const margin = 8;
+
+    // Use known width (textarea 200px + padding 16px) and estimate height
+    const popW = popover.offsetWidth || 220;
+    const popH = popover.offsetHeight || 100;
+
+    // Default: below badge, left-aligned to badge
+    let top = badgeRect.bottom + 6;
+    let left = badgeRect.left;
+
+    // Clamp right edge
+    if (left + popW > window.innerWidth - margin) {
+      left = window.innerWidth - popW - margin;
+    }
+    // Clamp left edge
+    if (left < margin) {
+      left = margin;
+    }
+    // Clamp bottom — flip above badge
+    if (top + popH > window.innerHeight - margin) {
+      top = badgeRect.top - popH - 6;
+    }
+    // Clamp top
+    if (top < margin) {
+      top = margin;
+    }
+
+    popover.style.top = `${top}px`;
+    popover.style.left = `${left}px`;
+  }
+
+  function createPopover(entry) {
+    const popover = document.createElement("div");
+    popover.className = "tagrelay-popover";
+    popover.style.display = "none";
+
+    // Preview label (shown on hover)
+    const preview = document.createElement("div");
+    preview.className = "tagrelay-popover-preview";
+
+    // Edit area (shown on click)
+    const editArea = document.createElement("div");
+    editArea.className = "tagrelay-popover-edit";
+
+    const textarea = document.createElement("textarea");
+    textarea.className = "tagrelay-popover-text";
+    textarea.placeholder = "What should change?";
+    textarea.value = entry.data.annotation || "";
+
+    textarea.addEventListener("click", (e) => e.stopPropagation());
+    textarea.addEventListener("keydown", (e) => {
+      e.stopPropagation();
+      if (e.key === "Enter" && !e.shiftKey) {
+        e.preventDefault();
+        saveAndClose(entry);
+      }
+    });
+    textarea.addEventListener("keyup", (e) => e.stopPropagation());
+
+    textarea.addEventListener("blur", () => {
+      // Delay to check if focus moved to Remove button (which fires mousedown first)
+      setTimeout(() => {
+        // If entry was already removed or popover closed, bail
+        if (!entry.popover || entry.popoverMode !== "edit") return;
+        // If focus moved to another element inside the popover, don't close
+        if (entry.popover.contains(document.activeElement)) return;
+        saveAndClose(entry);
+      }, 0);
+    });
+
+    const removeBtn = document.createElement("button");
+    removeBtn.className = "tagrelay-popover-remove";
+    removeBtn.textContent = "Remove";
+    removeBtn.addEventListener("mousedown", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      const idx = taggedElements.indexOf(entry);
+      if (idx !== -1) {
+        entry.popoverMode = null; // prevent blur handler from running
+        removeTag(idx);
+        syncTags();
+      }
+    });
+
+    editArea.appendChild(textarea);
+    editArea.appendChild(removeBtn);
+    popover.appendChild(preview);
+    popover.appendChild(editArea);
+
+    popover.addEventListener("mouseenter", () => {
+      clearTimeout(popoverHideTimeout);
+    });
+    popover.addEventListener("mouseleave", () => {
+      popoverHideTimeout = setTimeout(() => {
+        if (entry.popoverMode === "edit" && entry.popover.contains(document.activeElement)) return;
+        hidePopover(entry);
+      }, 300);
+    });
+
+    document.documentElement.appendChild(popover);
+
+    return popover;
+  }
+
+  function showPopover(entry, mode) {
+    if (!entry.popover) {
+      entry.popover = createPopover(entry);
+    }
+    const popover = entry.popover;
+    entry.popoverMode = mode;
+
+    if (mode === "preview") {
+      if (!entry.data.annotation) return; // nothing to preview
+      const preview = popover.querySelector(".tagrelay-popover-preview");
+      preview.textContent = entry.data.annotation;
+      preview.style.display = "block";
+      popover.querySelector(".tagrelay-popover-edit").style.display = "none";
+    } else if (mode === "edit") {
+      popover.querySelector(".tagrelay-popover-preview").style.display = "none";
+      popover.querySelector(".tagrelay-popover-edit").style.display = "flex";
+      const textarea = popover.querySelector(".tagrelay-popover-text");
+      textarea.value = entry.data.annotation || "";
+    }
+
+    popover.style.display = "flex";
+    positionPopover(popover, entry.badge);
+
+    if (mode === "edit") {
+      const textarea = popover.querySelector(".tagrelay-popover-text");
+      setTimeout(() => textarea.focus(), 0);
+    }
+  }
+
+  function hidePopover(entry, force) {
+    if (!entry.popover) return;
+    // Don't close edit mode if textarea is focused (unless forced)
+    if (!force && entry.popoverMode === "edit" && entry.popover.contains(document.activeElement)) {
+      return;
+    }
+    entry.popover.style.display = "none";
+    entry.popoverMode = null;
+  }
+
+  function saveAndClose(entry) {
+    if (!entry.popover) return;
+    const textarea = entry.popover.querySelector(".tagrelay-popover-text");
+    entry.data.annotation = textarea.value.trim() || undefined;
+    entry.badge.classList.toggle("has-annotation", !!entry.data.annotation);
+    hidePopover(entry, true);
+    syncTags();
+  }
+
+  let popoverHideTimeout = null;
 
   function addTag(el) {
     const index = taggedElements.length + 1;
@@ -184,10 +369,39 @@
       },
       pageURL: location.href,
       timestamp: new Date().toISOString(),
+      tagName: el.tagName,
+      attributes: getAttributes(el),
+      parentContext: getParentContext(el),
+      pageTitle: document.title,
     };
 
-    taggedElements.push({ el, badge, data });
-    updateTagList();
+    const entry = { el, badge, popover: null, popoverMode: null, data };
+    taggedElements.push(entry);
+    updateFabCount();
+
+    // Show edit popover on first tag
+    showPopover(entry, "edit");
+
+    // Hover: show preview (annotation text only)
+    badge.addEventListener("mouseenter", () => {
+      clearTimeout(popoverHideTimeout);
+      if (entry.popoverMode !== "edit") {
+        showPopover(entry, "preview");
+      }
+    });
+    badge.addEventListener("mouseleave", () => {
+      popoverHideTimeout = setTimeout(() => {
+        if (entry.popoverMode === "edit" && entry.popover && entry.popover.contains(document.activeElement)) return;
+        hidePopover(entry, entry.popoverMode !== "edit");
+      }, 300);
+    });
+    // Click: show edit mode
+    badge.addEventListener("click", (e) => {
+      e.stopPropagation();
+      e.preventDefault();
+      clearTimeout(popoverHideTimeout);
+      showPopover(entry, "edit");
+    });
 
     if (screenshotEnabled) {
       captureElementScreenshot(el, taggedElements.length - 1);
@@ -197,10 +411,11 @@
   function removeTag(idx) {
     const entry = taggedElements[idx];
     entry.badge.remove();
+    if (entry.popover) entry.popover.remove();
     entry.el.classList.remove("tagrelay-tagged");
     taggedElements.splice(idx, 1);
     renumberBadges();
-    updateTagList();
+    updateFabCount();
   }
 
   function renumberBadges() {
@@ -208,57 +423,23 @@
       t.data.index = i + 1;
       t.badge.textContent = String(i + 1);
       positionBadge(t.badge, t.el);
+      if (t.popover) positionPopover(t.popover, t.badge);
     });
   }
 
   function clearAllTags() {
     for (const t of taggedElements) {
       t.badge.remove();
+      if (t.popover) t.popover.remove();
       t.el.classList.remove("tagrelay-tagged");
     }
     taggedElements = [];
-    contextInput.value = "";
     updateFabCount();
-    updateTagList();
   }
 
   function updateFabCount() {
     fab.textContent = taggedElements.length > 0 ? String(taggedElements.length) : "TR";
-  }
-
-  // --- Tag List UI ---
-  function updateTagList() {
-    tagList.innerHTML = "";
-    taggedElements.forEach((t, i) => {
-      const entry = document.createElement("div");
-      entry.className = "tagrelay-tag-entry";
-
-      const num = document.createElement("span");
-      num.className = "tagrelay-tag-num";
-      num.textContent = String(i + 1);
-
-      const text = document.createElement("span");
-      text.className = "tagrelay-tag-text";
-      const label = (t.data.innerText || t.data.selector).slice(0, 30);
-      text.textContent = label || t.el.tagName.toLowerCase();
-
-      const removeBtn = document.createElement("button");
-      removeBtn.className = "tagrelay-tag-remove";
-      removeBtn.textContent = "\u00D7";
-      removeBtn.title = "Remove tag";
-      removeBtn.addEventListener("click", (e) => {
-        e.stopPropagation();
-        e.preventDefault();
-        removeTag(i);
-        syncTags();
-      });
-
-      entry.appendChild(num);
-      entry.appendChild(text);
-      entry.appendChild(removeBtn);
-      tagList.appendChild(entry);
-    });
-    updateFabCount();
+    updateClearButton();
   }
 
   // --- Screenshot ---
@@ -293,10 +474,8 @@
   // --- Sync to server ---
   function syncTags() {
     const elements = taggedElements.map((t) => t.data);
-    const context = contextInput.value.trim();
     updateFabCount();
     const body = { pageURL: location.href, elements };
-    if (context) body.context = context;
     fetch(`http://localhost:${serverPort}/tags`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -341,18 +520,23 @@
 
       const idx = findTagged(e.target);
       if (idx !== -1) {
-        removeTag(idx);
-      } else {
-        addTag(e.target);
+        showPopover(taggedElements[idx], "edit");
+        return;
       }
+      addTag(e.target);
       syncTags();
     },
     true
   );
 
-  // Reposition badges on scroll/resize
+  // Reposition badges and popovers on scroll/resize
   function repositionBadges() {
-    taggedElements.forEach((t) => positionBadge(t.badge, t.el));
+    taggedElements.forEach((t) => {
+      positionBadge(t.badge, t.el);
+      if (t.popover && t.popover.style.display !== "none") {
+        positionPopover(t.popover, t.badge);
+      }
+    });
   }
   window.addEventListener("scroll", repositionBadges, { passive: true });
   window.addEventListener("resize", repositionBadges, { passive: true });

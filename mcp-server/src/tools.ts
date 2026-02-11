@@ -8,12 +8,11 @@ export function registerTools(server: McpServer) {
     {},
     async () => {
       const tags = store.getAllTags();
-      const context = store.getAllContext();
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify({ tags, context }, null, 2),
+            text: JSON.stringify({ tags }, null, 2),
           },
         ],
       };
@@ -44,12 +43,11 @@ export function registerTools(server: McpServer) {
     async () => {
       const count = store.getTagCount();
       const urls = store.getPageURLs();
-      const context = store.getAllContext();
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify({ count, urls, context }, null, 2),
+            text: JSON.stringify({ count, urls }, null, 2),
           },
         ],
       };
