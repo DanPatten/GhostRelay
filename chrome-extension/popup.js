@@ -1,15 +1,21 @@
+const enabledInput = document.getElementById("enabled");
 const portInput = document.getElementById("port");
 const screenshotInput = document.getElementById("screenshot");
 const statusEl = document.getElementById("status");
 
 // Load saved settings
-chrome.storage.sync.get({ port: 7890, screenshot: false }, (s) => {
+chrome.storage.sync.get({ enabled: false, port: 7890, screenshot: false }, (s) => {
+  enabledInput.checked = s.enabled;
   portInput.value = s.port;
   screenshotInput.checked = s.screenshot;
   checkConnection(s.port);
 });
 
 // Save on change
+enabledInput.addEventListener("change", () => {
+  chrome.storage.sync.set({ enabled: enabledInput.checked });
+});
+
 portInput.addEventListener("change", () => {
   const port = parseInt(portInput.value, 10);
   if (port >= 1024 && port <= 65535) {

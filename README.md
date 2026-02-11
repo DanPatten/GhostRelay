@@ -18,13 +18,13 @@
 
 ## How it works
 
-> **Chrome Extension** &rarr; you tag elements on any webpage
+> **Chrome Extension** &rarr; you tag elements on any webpage and optionally describe what should change
 >
-> **MCP Server** &rarr; holds the tagged data locally
+> **MCP Server** &rarr; holds the tagged data and context locally
 >
-> **AI Assistant** &rarr; picks up the tags via MCP tools and knows exactly what you're pointing at
+> **AI Assistant** &rarr; picks up the tags + context via MCP tools and knows exactly what you're pointing at
 
-No copy-pasting selectors. No screenshots. Just click what you want changed, then tell your AI what to do with it.
+No copy-pasting selectors. No screenshots. Just enable TagRelay, click what you want changed, optionally describe the change, then let your AI do the rest.
 
 ---
 
@@ -84,9 +84,11 @@ You're ready to go.
 
 | Action | How |
 |--------|-----|
-| **Enter tagging mode** | Click the floating button in the bottom-right corner of any page |
-| **Tag an element** | Hover to highlight, click to tag &mdash; a numbered badge appears |
-| **Untag an element** | Click a tagged element again |
+| **Enable TagRelay** | Click the extension icon and check "Enable TagRelay on pages" |
+| **Enter tagging mode** | Click the floating button (bottom-right corner) on any page |
+| **Tag an element** | Hover to highlight, click to tag &mdash; a numbered badge appears and the tag list updates |
+| **Untag an element** | Click a tagged element again, or click the &times; button in the tag list |
+| **Describe the change** | Type in the "What should change?" textbox in the toolbar (optional) |
 | **Clear all tags** | Use the "Clear All" button while in tagging mode |
 | **Exit tagging mode** | Click the floating button again &mdash; tags stay visible |
 
@@ -94,11 +96,11 @@ Once you've tagged what you need, your AI assistant can pick them up using these
 
 | Tool | What it does |
 |------|--------------|
-| `tagrelay_get_status` | Returns how many elements are tagged and on which pages |
-| `tagrelay_get_tagged_elements` | Returns full data for each tag &mdash; CSS selector, text, HTML snippet, bounding box, page URL |
-| `tagrelay_clear_tags` | Clears everything and removes badges from the browser |
+| `get_status` | Returns how many elements are tagged, on which pages, and any context provided |
+| `get_tagged_elements` | Returns full data for each tag &mdash; CSS selector, text, HTML snippet, bounding box, page URL &mdash; plus any context |
+| `clear_tags` | Clears everything and removes badges from the browser |
 
-The server also exposes a `tagrelay` **MCP prompt** with the full workflow instructions. MCP-compatible clients discover it automatically via `prompts/list` — no manual prompt setup needed.
+The server also exposes a `tagrelay` **MCP prompt** with the full workflow instructions. It accepts an optional `context` argument (e.g., `/tagrelay make the header blue`) so you can describe the change from the AI side too. MCP-compatible clients discover it automatically via `prompts/list` — no manual prompt setup needed.
 
 ---
 
@@ -108,6 +110,7 @@ Click the TagRelay icon in your Chrome toolbar:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
+| **Enable TagRelay on pages** | Off | Shows the floating button on all pages when enabled |
 | **Server Port** | `7890` | Must match `TAGRELAY_PORT` in your MCP config |
 | **Element Screenshots** | Off | When on, each tag includes a cropped PNG of the element |
 

@@ -8,12 +8,15 @@
   let hoveredEl = null;
   let serverPort = 7890;
   let screenshotEnabled = false;
+  let enabled = false;
   let eventSource = null;
 
   // Load settings
-  chrome.storage.sync.get({ port: 7890, screenshot: false }, (s) => {
+  chrome.storage.sync.get({ port: 7890, screenshot: false, enabled: false }, (s) => {
     serverPort = s.port;
     screenshotEnabled = s.screenshot;
+    enabled = s.enabled;
+    applyEnabledState();
     connectSSE();
   });
 
@@ -26,7 +29,18 @@
     if (changes.screenshot) {
       screenshotEnabled = changes.screenshot.newValue;
     }
+    if (changes.enabled) {
+      enabled = changes.enabled.newValue;
+      applyEnabledState();
+    }
   });
+
+  function applyEnabledState() {
+    fab.classList.toggle("tagrelay-disabled", !enabled);
+    if (!enabled && selectionMode) {
+      toggleSelectionMode();
+    }
+  }
 
   // --- SSE Connection ---
   function connectSSE() {
@@ -44,6 +58,7 @@
   // --- Floating Action Button ---
   const fab = document.createElement("button");
   fab.id = "tagrelay-fab";
+  fab.classList.add("tagrelay-disabled"); // Start hidden until storage loads
   fab.textContent = "TR";
   fab.title = "TagRelay — Click to start tagging elements";
   fab.addEventListener("click", (e) => {
@@ -58,6 +73,19 @@
   toolbar.id = "tagrelay-toolbar";
   toolbar.style.display = "none";
 
+  // Context textbox
+  const contextInput = document.createElement("textarea");
+  contextInput.id = "tagrelay-context";
+  contextInput.placeholder = "What should change? (optional)";
+  contextInput.addEventListener("click", (e) => e.stopPropagation());
+  contextInput.addEventListener("keydown", (e) => e.stopPropagation());
+  contextInput.addEventListener("keyup", (e) => e.stopPropagation());
+  contextInput.addEventListener("change", () => syncTags());
+
+  // Tag list
+  const tagList = document.createElement("div");
+  tagList.id = "tagrelay-tag-list";
+
   const btnClear = document.createElement("button");
   btnClear.id = "tagrelay-btn-clear";
   btnClear.textContent = "Clear All";
@@ -68,6 +96,8 @@
     syncTags();
   });
 
+  toolbar.appendChild(contextInput);
+  toolbar.appendChild(tagList);
   toolbar.appendChild(btnClear);
   document.documentElement.appendChild(toolbar);
 
@@ -157,6 +187,7 @@
     };
 
     taggedElements.push({ el, badge, data });
+    updateTagList();
 
     if (screenshotEnabled) {
       captureElementScreenshot(el, taggedElements.length - 1);
@@ -169,6 +200,7 @@
     entry.el.classList.remove("tagrelay-tagged");
     taggedElements.splice(idx, 1);
     renumberBadges();
+    updateTagList();
   }
 
   function renumberBadges() {
@@ -185,11 +217,48 @@
       t.el.classList.remove("tagrelay-tagged");
     }
     taggedElements = [];
+    contextInput.value = "";
     updateFabCount();
+    updateTagList();
   }
 
   function updateFabCount() {
     fab.textContent = taggedElements.length > 0 ? String(taggedElements.length) : "TR";
+  }
+
+  // --- Tag List UI ---
+  function updateTagList() {
+    tagList.innerHTML = "";
+    taggedElements.forEach((t, i) => {
+      const entry = document.createElement("div");
+      entry.className = "tagrelay-tag-entry";
+
+      const num = document.createElement("span");
+      num.className = "tagrelay-tag-num";
+      num.textContent = String(i + 1);
+
+      const text = document.createElement("span");
+      text.className = "tagrelay-tag-text";
+      const label = (t.data.innerText || t.data.selector).slice(0, 30);
+      text.textContent = label || t.el.tagName.toLowerCase();
+
+      const removeBtn = document.createElement("button");
+      removeBtn.className = "tagrelay-tag-remove";
+      removeBtn.textContent = "\u00D7";
+      removeBtn.title = "Remove tag";
+      removeBtn.addEventListener("click", (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        removeTag(i);
+        syncTags();
+      });
+
+      entry.appendChild(num);
+      entry.appendChild(text);
+      entry.appendChild(removeBtn);
+      tagList.appendChild(entry);
+    });
+    updateFabCount();
   }
 
   // --- Screenshot ---
@@ -224,11 +293,14 @@
   // --- Sync to server ---
   function syncTags() {
     const elements = taggedElements.map((t) => t.data);
+    const context = contextInput.value.trim();
     updateFabCount();
+    const body = { pageURL: location.href, elements };
+    if (context) body.context = context;
     fetch(`http://localhost:${serverPort}/tags`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ pageURL: location.href, elements }),
+      body: JSON.stringify(body),
     }).catch(() => {
       // Server not running — silently ignore
     });

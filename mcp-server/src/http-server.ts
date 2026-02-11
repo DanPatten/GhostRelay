@@ -18,22 +18,23 @@ export function createHttpServer(port: number) {
 
   // Receive updated tag list from extension
   app.post("/tags", (req: Request, res: Response) => {
-    const { pageURL, elements } = req.body as {
+    const { pageURL, elements, context } = req.body as {
       pageURL: string;
       elements: TaggedElement[];
+      context?: string;
     };
     if (!pageURL || !Array.isArray(elements)) {
       res.status(400).json({ error: "pageURL and elements[] required" });
       return;
     }
-    store.setTags(pageURL, elements);
+    store.setTags(pageURL, elements, context);
     broadcast("update", { count: store.getTagCount() });
     res.json({ ok: true, count: store.getTagCount() });
   });
 
   // Get current tags
   app.get("/tags", (_req: Request, res: Response) => {
-    res.json({ tags: store.getAllTags() });
+    res.json({ tags: store.getAllTags(), context: store.getAllContext() });
   });
 
   // Clear all tags

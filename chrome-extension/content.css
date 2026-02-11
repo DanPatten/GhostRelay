@@ -3,8 +3,8 @@
   position: fixed;
   bottom: 24px;
   right: 24px;
-  width: 48px;
-  height: 48px;
+  width: 36px;
+  height: 36px;
   border-radius: 50%;
   background: #4A90D9;
   color: #fff;
@@ -14,7 +14,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   box-shadow: 0 2px 8px rgba(0,0,0,0.3);
@@ -34,6 +34,11 @@
   animation: tagrelay-pulse 1.5s ease-in-out infinite;
 }
 
+/* Hidden when disabled */
+.tagrelay-disabled {
+  display: none !important;
+}
+
 @keyframes tagrelay-pulse {
   0%, 100% { box-shadow: 0 0 0 0 rgba(232, 84, 62, 0.5); }
   50% { box-shadow: 0 0 0 10px rgba(232, 84, 62, 0); }
@@ -42,7 +47,7 @@
 /* Toolbar (shown in selection mode) */
 #tagrelay-toolbar {
   position: fixed;
-  bottom: 80px;
+  bottom: 68px;
   right: 24px;
   z-index: 2147483647;
   display: flex;
@@ -69,6 +74,86 @@
 
 #tagrelay-btn-clear {
   background: #888;
+}
+
+/* Context textbox */
+#tagrelay-context {
+  width: 200px;
+  min-height: 48px;
+  max-height: 120px;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  resize: vertical;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  box-sizing: border-box;
+}
+
+#tagrelay-context:focus {
+  outline: none;
+  border-color: #4A90D9;
+}
+
+/* Tag list */
+#tagrelay-tag-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 200px;
+  overflow-y: auto;
+  width: 200px;
+}
+
+.tagrelay-tag-entry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 3px 6px;
+  font-size: 11px;
+  color: #333;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.tagrelay-tag-entry .tagrelay-tag-num {
+  background: #E8543E;
+  color: #fff;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  line-height: 18px;
+  text-align: center;
+  border-radius: 9px;
+  font-size: 10px;
+  flex-shrink: 0;
+}
+
+.tagrelay-tag-entry .tagrelay-tag-text {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tagrelay-tag-entry .tagrelay-tag-remove {
+  background: none;
+  border: none;
+  color: #999;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1;
+  padding: 0 2px;
+  box-shadow: none;
+  flex-shrink: 0;
+}
+
+.tagrelay-tag-entry .tagrelay-tag-remove:hover {
+  color: #E8543E;
 }
 
 /* Hover highlight */
