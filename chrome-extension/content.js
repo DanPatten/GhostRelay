@@ -1,7 +1,7 @@
 (() => {
   // Prevent double-injection
-  if (window.__tagrelay_loaded) return;
-  window.__tagrelay_loaded = true;
+  if (window.__ghostrelay_loaded) return;
+  window.__ghostrelay_loaded = true;
 
   let selectionMode = false;
   let taggedElements = []; // { el, badge, popover, popoverMode, data }
@@ -37,7 +37,7 @@
   });
 
   function applyEnabledState() {
-    fab.classList.toggle("tagrelay-disabled", !enabled);
+    fab.classList.toggle("ghostrelay-disabled", !enabled);
     if (!enabled && selectionMode) {
       toggleSelectionMode();
     }
@@ -58,14 +58,14 @@
 
   // --- Floating Action Button ---
   const fab = document.createElement("button");
-  fab.id = "tagrelay-fab";
-  fab.classList.add("tagrelay-disabled"); // Start hidden until storage loads
+  fab.id = "ghostrelay-fab";
+  fab.classList.add("ghostrelay-disabled"); // Start hidden until storage loads
   const iconUrl = chrome.runtime.getURL("icons/fab_icon.png");
   fab.style.backgroundImage = `url("${iconUrl}")`;
   fab.style.backgroundSize = "100%";
   fab.style.backgroundPosition = "center";
   fab.style.backgroundRepeat = "no-repeat";
-  fab.title = "TagRelay — Click to start tagging elements";
+  fab.title = "GhostRelay — Click to start tagging elements";
   fab.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
@@ -75,7 +75,7 @@
 
   // --- Clear Button (trash icon, shown in selection mode) ---
   const btnClear = document.createElement("button");
-  btnClear.id = "tagrelay-btn-clear";
+  btnClear.id = "ghostrelay-btn-clear";
   btnClear.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
   btnClear.title = "Clear all tags";
   btnClear.style.display = "none";
@@ -93,7 +93,7 @@
     fab.classList.toggle("active", selectionMode);
     updateClearButton();
     if (!selectionMode && hoveredEl) {
-      hoveredEl.classList.remove("tagrelay-highlight");
+      hoveredEl.classList.remove("ghostrelay-highlight");
       hoveredEl = null;
     }
   }
@@ -155,14 +155,14 @@
   }
 
   // --- Tagging ---
-  function isTagRelayUI(el) {
+  function isGhostRelayUI(el) {
     if (!el || !el.closest) return false;
     return (
       el === fab ||
-      el.closest("#tagrelay-fab") ||
-      el.closest("#tagrelay-btn-clear") ||
-      el.closest(".tagrelay-badge") ||
-      el.closest(".tagrelay-popover")
+      el.closest("#ghostrelay-fab") ||
+      el.closest("#ghostrelay-btn-clear") ||
+      el.closest(".ghostrelay-badge") ||
+      el.closest(".ghostrelay-popover")
     );
   }
 
@@ -227,14 +227,14 @@
 
   function createPopover(entry) {
     const popover = document.createElement("div");
-    popover.className = "tagrelay-popover";
+    popover.className = "ghostrelay-popover";
     popover.style.display = "none";
 
     // Header bar
     const header = document.createElement("div");
-    header.className = "tagrelay-popover-header";
+    header.className = "ghostrelay-popover-header";
     const headerIcon = document.createElement("svg");
-    headerIcon.className = "tagrelay-popover-header-icon";
+    headerIcon.className = "ghostrelay-popover-header-icon";
     headerIcon.setAttribute("viewBox", "0 0 24 24");
     headerIcon.setAttribute("fill", "none");
     headerIcon.setAttribute("stroke", "currentColor");
@@ -247,14 +247,14 @@
 
     // Preview label (shown on hover)
     const preview = document.createElement("div");
-    preview.className = "tagrelay-popover-preview";
+    preview.className = "ghostrelay-popover-preview";
 
     // Edit area (shown on click)
     const editArea = document.createElement("div");
-    editArea.className = "tagrelay-popover-edit";
+    editArea.className = "ghostrelay-popover-edit";
 
     const textarea = document.createElement("textarea");
-    textarea.className = "tagrelay-popover-text";
+    textarea.className = "ghostrelay-popover-text";
     textarea.placeholder = "Describe what should change\u2026";
     textarea.value = entry.data.annotation || "";
 
@@ -281,14 +281,14 @@
 
     // Footer with hint and remove button
     const footer = document.createElement("div");
-    footer.className = "tagrelay-popover-footer";
+    footer.className = "ghostrelay-popover-footer";
 
     const hint = document.createElement("span");
-    hint.className = "tagrelay-popover-hint";
+    hint.className = "ghostrelay-popover-hint";
     hint.innerHTML = '<kbd>Enter</kbd> to save';
 
     const removeBtn = document.createElement("button");
-    removeBtn.className = "tagrelay-popover-remove";
+    removeBtn.className = "ghostrelay-popover-remove";
     removeBtn.textContent = "Remove";
     removeBtn.addEventListener("mousedown", (e) => {
       e.stopPropagation();
@@ -334,14 +334,14 @@
 
     if (mode === "preview") {
       if (!entry.data.annotation) return; // nothing to preview
-      const preview = popover.querySelector(".tagrelay-popover-preview");
+      const preview = popover.querySelector(".ghostrelay-popover-preview");
       preview.textContent = entry.data.annotation;
       preview.style.display = "block";
-      popover.querySelector(".tagrelay-popover-edit").style.display = "none";
+      popover.querySelector(".ghostrelay-popover-edit").style.display = "none";
     } else if (mode === "edit") {
-      popover.querySelector(".tagrelay-popover-preview").style.display = "none";
-      popover.querySelector(".tagrelay-popover-edit").style.display = "flex";
-      const textarea = popover.querySelector(".tagrelay-popover-text");
+      popover.querySelector(".ghostrelay-popover-preview").style.display = "none";
+      popover.querySelector(".ghostrelay-popover-edit").style.display = "flex";
+      const textarea = popover.querySelector(".ghostrelay-popover-text");
       textarea.value = entry.data.annotation || "";
     }
 
@@ -349,7 +349,7 @@
     positionPopover(popover, entry.badge);
 
     if (mode === "edit") {
-      const textarea = popover.querySelector(".tagrelay-popover-text");
+      const textarea = popover.querySelector(".ghostrelay-popover-text");
       setTimeout(() => textarea.focus(), 0);
     }
   }
@@ -366,7 +366,7 @@
 
   function saveAndClose(entry) {
     if (!entry.popover) return;
-    const textarea = entry.popover.querySelector(".tagrelay-popover-text");
+    const textarea = entry.popover.querySelector(".ghostrelay-popover-text");
     entry.data.annotation = textarea.value.trim() || undefined;
     entry.badge.classList.toggle("has-annotation", !!entry.data.annotation);
     hidePopover(entry, true);
@@ -380,12 +380,12 @@
     const rect = el.getBoundingClientRect();
 
     const badge = document.createElement("span");
-    badge.className = "tagrelay-badge";
+    badge.className = "ghostrelay-badge";
     badge.textContent = String(index);
     positionBadge(badge, el);
     document.documentElement.appendChild(badge);
 
-    el.classList.add("tagrelay-tagged");
+    el.classList.add("ghostrelay-tagged");
 
     const data = {
       index,
@@ -443,7 +443,7 @@
     const entry = taggedElements[idx];
     entry.badge.remove();
     if (entry.popover) entry.popover.remove();
-    entry.el.classList.remove("tagrelay-tagged");
+    entry.el.classList.remove("ghostrelay-tagged");
     taggedElements.splice(idx, 1);
     renumberBadges();
     updateFabCount();
@@ -462,7 +462,7 @@
     for (const t of taggedElements) {
       t.badge.remove();
       if (t.popover) t.popover.remove();
-      t.el.classList.remove("tagrelay-tagged");
+      t.el.classList.remove("ghostrelay-tagged");
     }
     taggedElements = [];
     updateFabCount();
@@ -529,10 +529,10 @@
     "mouseover",
     (e) => {
       if (!selectionMode) return;
-      if (isTagRelayUI(e.target)) return;
-      if (hoveredEl) hoveredEl.classList.remove("tagrelay-highlight");
+      if (isGhostRelayUI(e.target)) return;
+      if (hoveredEl) hoveredEl.classList.remove("ghostrelay-highlight");
       hoveredEl = e.target;
-      hoveredEl.classList.add("tagrelay-highlight");
+      hoveredEl.classList.add("ghostrelay-highlight");
     },
     true
   );
@@ -542,7 +542,7 @@
     (e) => {
       if (!selectionMode) return;
       if (e.target === hoveredEl) {
-        hoveredEl.classList.remove("tagrelay-highlight");
+        hoveredEl.classList.remove("ghostrelay-highlight");
         hoveredEl = null;
       }
     },
@@ -553,7 +553,7 @@
     "click",
     (e) => {
       if (!selectionMode) return;
-      if (isTagRelayUI(e.target)) return;
+      if (isGhostRelayUI(e.target)) return;
       e.preventDefault();
       e.stopPropagation();
 

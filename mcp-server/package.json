@@ -1,10 +1,10 @@
 {
-  "name": "mcp-server-tagrelay",
+  "name": "mcp-server-ghostrelay",
   "version": "1.0.0",
-  "description": "MCP server for TagRelay — bridges Chrome extension element tagging with AI assistants",
+  "description": "MCP server for GhostRelay — bridges Chrome extension element tagging with AI assistants",
   "main": "dist/index.js",
   "bin": {
-    "mcp-server-tagrelay": "dist/index.js"
+    "mcp-server-ghostrelay": "dist/index.js"
   },
   "engines": {
     "node": ">=18"

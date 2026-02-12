@@ -4,11 +4,11 @@ import { createHttpServer } from "./http-server.js";
 import { registerPrompts } from "./prompts.js";
 import { registerTools } from "./tools.js";
 
-const PORT = parseInt(process.env.TAGRELAY_PORT ?? "7890", 10);
+const PORT = parseInt(process.env.GHOSTRELAY_PORT ?? "7890", 10);
 
 async function main() {
   const server = new McpServer({
-    name: "tagrelay",
+    name: "ghostrelay",
     version: "1.0.0",
   });
 
@@ -21,7 +21,7 @@ async function main() {
   // Connect MCP over stdio
   const transport = new StdioServerTransport();
   await server.connect(transport);
-  console.error("[TagRelay] MCP server running on stdio");
+  console.error("[GhostRelay] MCP server running on stdio");
 }
 
 main().catch((err) => {

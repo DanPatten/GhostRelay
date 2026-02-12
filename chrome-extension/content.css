@@ -1,5 +1,5 @@
 /* Floating action button */
-#tagrelay-fab {
+#ghostrelay-fab {
   position: fixed;
   bottom: 24px;
   right: 24px;
@@ -23,24 +23,24 @@
   user-select: none;
 }
 
-#tagrelay-fab:hover {
+#ghostrelay-fab:hover {
   transform: scale(1.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
-#tagrelay-fab.active {
+#ghostrelay-fab.active {
   background: #fff;
   color: #4A90D9;
   border-color: #4A90D9;
-  animation: tagrelay-pulse 1.5s ease-in-out infinite;
+  animation: ghostrelay-pulse 1.5s ease-in-out infinite;
 }
 
 /* Hidden when disabled */
-.tagrelay-disabled {
+.ghostrelay-disabled {
   display: none !important;
 }
 
-@keyframes tagrelay-pulse {
+@keyframes ghostrelay-pulse {
 
   0%,
   100% {
@@ -53,7 +53,7 @@
 }
 
 /* Clear button (trash icon) */
-#tagrelay-btn-clear {
+#ghostrelay-btn-clear {
   position: fixed;
   bottom: 24px;
   right: 68px;
@@ -73,20 +73,20 @@
   padding: 0;
 }
 
-#tagrelay-btn-clear:hover {
+#ghostrelay-btn-clear:hover {
   background: #E8543E;
   transform: scale(1.1);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* Hover highlight */
-.tagrelay-highlight {
+.ghostrelay-highlight {
   outline: 2px dashed #4A90D9 !important;
   outline-offset: 2px !important;
 }
 
 /* Tag badge */
-.tagrelay-badge {
+.ghostrelay-badge {
   position: fixed;
   background: #E8543E;
   color: #fff;
@@ -107,7 +107,7 @@
 }
 
 /* Annotation dot indicator on badge */
-.tagrelay-badge.has-annotation::after {
+.ghostrelay-badge.has-annotation::after {
   content: "";
   position: absolute;
   top: -3px;
@@ -120,7 +120,7 @@
 }
 
 /* Annotation popover */
-.tagrelay-popover {
+.ghostrelay-popover {
   position: fixed;
   z-index: 2147483647;
   display: flex;
@@ -136,10 +136,10 @@
     0 0 0 1px rgba(0, 0, 0, 0.03);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   overflow: hidden;
-  animation: tagrelay-popover-in 0.15s ease-out;
+  animation: ghostrelay-popover-in 0.15s ease-out;
 }
 
-@keyframes tagrelay-popover-in {
+@keyframes ghostrelay-popover-in {
   from {
     opacity: 0;
     transform: translateY(4px) scale(0.98);
@@ -151,7 +151,7 @@
 }
 
 /* Popover header bar */
-.tagrelay-popover-header {
+.ghostrelay-popover-header {
   display: flex;
   align-items: center;
   gap: 6px;
@@ -163,13 +163,13 @@
   letter-spacing: 0.3px;
 }
 
-.tagrelay-popover-header-icon {
+.ghostrelay-popover-header-icon {
   width: 14px;
   height: 14px;
   opacity: 0.9;
 }
 
-.tagrelay-popover-preview {
+.ghostrelay-popover-preview {
   font-size: 13px;
   color: #1a1a2e;
   line-height: 1.5;
@@ -178,13 +178,13 @@
   word-wrap: break-word;
 }
 
-.tagrelay-popover-edit {
+.ghostrelay-popover-edit {
   display: flex;
   flex-direction: column;
   gap: 0;
 }
 
-.tagrelay-popover-text {
+.ghostrelay-popover-text {
   width: 280px;
   min-height: 80px;
   max-height: 160px;
@@ -201,17 +201,17 @@
   background: transparent;
 }
 
-.tagrelay-popover-text::placeholder {
+.ghostrelay-popover-text::placeholder {
   color: #a0a3b1;
   font-style: italic;
 }
 
-.tagrelay-popover-text:focus {
+.ghostrelay-popover-text:focus {
   outline: none;
   background: rgba(74, 144, 217, 0.03);
 }
 
-.tagrelay-popover-footer {
+.ghostrelay-popover-footer {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -219,13 +219,13 @@
   background: #f8f9fb;
 }
 
-.tagrelay-popover-hint {
+.ghostrelay-popover-hint {
   font-size: 10px;
   color: #a0a3b1;
   letter-spacing: 0.2px;
 }
 
-.tagrelay-popover-hint kbd {
+.ghostrelay-popover-hint kbd {
   display: inline-block;
   padding: 1px 4px;
   background: #e8eaef;
@@ -237,7 +237,7 @@
   box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
-.tagrelay-popover-remove {
+.ghostrelay-popover-remove {
   background: transparent;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -252,14 +252,14 @@
   transition: all 0.15s ease;
 }
 
-.tagrelay-popover-remove:hover {
+.ghostrelay-popover-remove:hover {
   background: #fef2f2;
   border-color: #fecaca;
   color: #dc2626;
 }
 
 /* Tagged element outline */
-.tagrelay-tagged {
+.ghostrelay-tagged {
   outline: 2px solid #E8543E !important;
   outline-offset: 1px !important;
 }

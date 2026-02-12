@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="TagRelayLogo.jpg" alt="TagRelay" width="180">
+  <img src="GhostRelayLogo.png" alt="GhostRelay" width="180">
 </p>
 
-<h1 align="center">TagRelay</h1>
+<h1 align="center">GhostRelay</h1>
 
 <p align="center">
   <strong>Tag elements in your browser. Pull them into your AI assistant. That's it.</strong>
@@ -24,7 +24,7 @@
 >
 > **AI Assistant** &rarr; picks up the tags + context via MCP tools and knows exactly what you're pointing at
 
-No copy-pasting selectors. No screenshots. Just enable TagRelay, click what you want changed, optionally describe the change, then let your AI do the rest.
+No copy-pasting selectors. No screenshots. Just enable GhostRelay, click what you want changed, optionally describe the change, then let your AI do the rest.
 
 ---
 
@@ -40,7 +40,7 @@ npm run build
 
 ### Step 2 &mdash; Register with your AI Assistant
 
-Add the TagRelay MCP server to your tool's config. The JSON block is the same everywhere — only the file location differs:
+Add the GhostRelay MCP server to your tool's config. The JSON block is the same everywhere — only the file location differs:
 
 | Tool | Config location |
 |------|----------------|
@@ -57,11 +57,11 @@ For tools that require manual config, add this block:
 ```json
 {
   "mcpServers": {
-    "tagrelay": {
+    "ghostrelay": {
       "command": "node",
       "args": ["<full-path-to-repo>/mcp-server/dist/index.js"],
       "env": {
-        "TAGRELAY_PORT": "7890"
+        "GHOSTRELAY_PORT": "7890"
       }
     }
   }
@@ -84,7 +84,7 @@ You're ready to go.
 
 | Action | How |
 |--------|-----|
-| **Enable TagRelay** | Click the extension icon and check "Enable TagRelay on pages" |
+| **Enable GhostRelay** | Click the extension icon and check "Enable GhostRelay on pages" |
 | **Enter tagging mode** | Click the floating button (bottom-right corner) on any page |
 | **Tag an element** | Hover to highlight, click to tag &mdash; a numbered badge appears and the tag list updates |
 | **Untag an element** | Click a tagged element again, or click the &times; button in the tag list |
@@ -100,18 +100,18 @@ Once you've tagged what you need, your AI assistant can pick them up using these
 | `get_tagged_elements` | Returns full data for each tag &mdash; CSS selector, text, HTML snippet, bounding box, page URL &mdash; plus any context |
 | `clear_tags` | Clears everything and removes badges from the browser |
 
-The server also exposes a `tagrelay` **MCP prompt** with the full workflow instructions. It accepts an optional `context` argument (e.g., `/tagrelay make the header blue`) so you can describe the change from the AI side too. MCP-compatible clients discover it automatically via `prompts/list` — no manual prompt setup needed.
+The server also exposes a `ghostrelay` **MCP prompt** with the full workflow instructions. It accepts an optional `context` argument (e.g., `/ghostrelay make the header blue`) so you can describe the change from the AI side too. MCP-compatible clients discover it automatically via `prompts/list` — no manual prompt setup needed.
 
 ---
 
 ## Extension Settings
 
-Click the TagRelay icon in your Chrome toolbar:
+Click the GhostRelay icon in your Chrome toolbar:
 
 | Setting | Default | Description |
 |---------|---------|-------------|
-| **Enable TagRelay on pages** | Off | Shows the floating button on all pages when enabled |
-| **Server Port** | `7890` | Must match `TAGRELAY_PORT` in your MCP config |
+| **Enable GhostRelay on pages** | Off | Shows the floating button on all pages when enabled |
+| **Server Port** | `7890` | Must match `GHOSTRELAY_PORT` in your MCP config |
 | **Element Screenshots** | Off | When on, each tag includes a cropped PNG of the element |
 
 ---
@@ -119,7 +119,7 @@ Click the TagRelay icon in your Chrome toolbar:
 ## Project Structure
 
 ```
-TagRelay/
+GhostRelay/
   chrome-extension/       Chrome Extension (Manifest V3, vanilla JS)
     manifest.json
     content.js            Tagging UI injected into every page

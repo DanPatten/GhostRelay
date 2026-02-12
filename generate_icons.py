@@ -1,8 +1,8 @@
 from PIL import Image, ImageDraw
 import os
 
-source_path = r"f:\Dan\Documents\Repos\TagRelay\TagRelayLogo.png"
-output_dir = r"f:\Dan\Documents\Repos\TagRelay\chrome-extension\icons"
+source_path = r"f:\Dan\Documents\Repos\GhostRelay\GhostRelayLogo.png"
+output_dir = r"f:\Dan\Documents\Repos\GhostRelay\chrome-extension\icons"
 
 if not os.path.exists(output_dir):
     os.makedirs(output_dir)

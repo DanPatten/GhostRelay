@@ -63,7 +63,7 @@ export function createHttpServer(port: number) {
   });
 
   const server = app.listen(port, () => {
-    console.error(`[TagRelay] HTTP server listening on port ${port}`);
+    console.error(`[GhostRelay] HTTP server listening on port ${port}`);
   });
 
   return server;

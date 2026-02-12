@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "TagRelay",
+  "name": "GhostRelay",
   "version": "1.0.0",
   "description": "Tag browser elements and relay them to AI coding assistants via MCP",
   "permissions": [
