@@ -90,7 +90,13 @@ Use the `/gr` shortcut command (or `/ghostrelay`):
 
 When called without instructions, GhostRelay infers intent from the tagged elements and any annotations you added in the browser.
 
-> **Note:** The `/gr` command requires the skill files in your project's `.claude/skills/` folder. If you used the Quick Start install prompt above, these are copied automatically. To add them manually, copy `gr.md` and `ghostrelay.md` from the cloned GhostRelay repo's `.claude/skills/` directory into your project's `.claude/skills/` folder.
+#### `/gr` Skill Setup (for AI assistants)
+
+After installing the MCP server, copy the skill files from the cloned GhostRelay repo into the user's project to enable the `/gr` and `/ghostrelay` slash commands:
+
+1. Create the `.claude/skills/` directory in the user's project if it doesn't exist.
+2. Copy `.claude/skills/gr.md` from the cloned GhostRelay repo into the user's project at `.claude/skills/gr.md`.
+3. Copy `.claude/skills/ghostrelay.md` from the cloned GhostRelay repo into the user's project at `.claude/skills/ghostrelay.md`.
 
 ### Other AI Tools
 
