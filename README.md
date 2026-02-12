@@ -22,7 +22,7 @@
 
 Ask your AI assistant:
 
-> Install the MCP server at https://github.com/DanPatten/GhostRelay
+> Install the MCP server at https://github.com/DanPatten/GhostRelay (follow readme)
 
 ### 2. Install the Chrome Extension
 
