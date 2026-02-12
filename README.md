@@ -24,8 +24,6 @@ Ask your AI assistant:
 
 > **Install the MCP server at https://github.com/DanPatten/GhostRelay**
 
-Most MCP-compatible tools (Claude Code, Cursor, Antigravity, OpenCode, etc.) will handle cloning, building, and registering the server automatically.
-
 ### 2. Install the Chrome Extension
 
 1. Go to `chrome://extensions`
