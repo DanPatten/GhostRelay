@@ -78,7 +78,7 @@ Once installed, tag elements in Chrome using the GhostRelay extension, then tell
 
 ### Claude Code
 
-Use the `/gr` shortcut command (or `/ghostrelay`):
+Use the `/gr` slash command:
 
 ```
 /gr make the header background dark blue
@@ -90,13 +90,15 @@ Use the `/gr` shortcut command (or `/ghostrelay`):
 
 When called without instructions, GhostRelay infers intent from the tagged elements and any annotations you added in the browser.
 
-#### `/gr` Skill Setup (for AI assistants)
+For continuous monitoring, use endless polling mode — Claude watches for new tags and processes them automatically:
 
-After installing the MCP server, copy the skill files from the cloned GhostRelay repo into the user's project to enable the `/gr` and `/ghostrelay` slash commands:
+```
+/gr endless
+```
 
-1. Create the `.claude/skills/` directory in the user's project if it doesn't exist.
-2. Copy `.claude/skills/gr.md` from the cloned GhostRelay repo into the user's project at `.claude/skills/gr.md`.
-3. Copy `.claude/skills/ghostrelay.md` from the cloned GhostRelay repo into the user's project at `.claude/skills/ghostrelay.md`.
+To set up the `/gr` command, ask Claude Code:
+
+> Install the `/gr` skill from the GhostRelay repo
 
 ### Other AI Tools
 
