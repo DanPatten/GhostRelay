@@ -60,7 +60,11 @@
   const fab = document.createElement("button");
   fab.id = "tagrelay-fab";
   fab.classList.add("tagrelay-disabled"); // Start hidden until storage loads
-  fab.textContent = "TR";
+  const iconUrl = chrome.runtime.getURL("icons/fab_icon.png");
+  fab.style.backgroundImage = `url("${iconUrl}")`;
+  fab.style.backgroundSize = "100%";
+  fab.style.backgroundPosition = "center";
+  fab.style.backgroundRepeat = "no-repeat";
   fab.title = "TagRelay — Click to start tagging elements";
   fab.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -192,9 +196,9 @@
     const badgeRect = badge.getBoundingClientRect();
     const margin = 8;
 
-    // Use known width (textarea 200px + padding 16px) and estimate height
-    const popW = popover.offsetWidth || 220;
-    const popH = popover.offsetHeight || 100;
+    // Use known width (textarea 280px) and estimate height
+    const popW = popover.offsetWidth || 280;
+    const popH = popover.offsetHeight || 160;
 
     // Default: below badge, left-aligned to badge
     let top = badgeRect.bottom + 6;
@@ -226,6 +230,21 @@
     popover.className = "tagrelay-popover";
     popover.style.display = "none";
 
+    // Header bar
+    const header = document.createElement("div");
+    header.className = "tagrelay-popover-header";
+    const headerIcon = document.createElement("svg");
+    headerIcon.className = "tagrelay-popover-header-icon";
+    headerIcon.setAttribute("viewBox", "0 0 24 24");
+    headerIcon.setAttribute("fill", "none");
+    headerIcon.setAttribute("stroke", "currentColor");
+    headerIcon.setAttribute("stroke-width", "2");
+    headerIcon.setAttribute("stroke-linecap", "round");
+    headerIcon.setAttribute("stroke-linejoin", "round");
+    headerIcon.innerHTML = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>';
+    header.appendChild(headerIcon);
+    header.appendChild(document.createTextNode(`Tag #${entry.data.index}`));
+
     // Preview label (shown on hover)
     const preview = document.createElement("div");
     preview.className = "tagrelay-popover-preview";
@@ -236,7 +255,7 @@
 
     const textarea = document.createElement("textarea");
     textarea.className = "tagrelay-popover-text";
-    textarea.placeholder = "What should change?";
+    textarea.placeholder = "Describe what should change\u2026";
     textarea.value = entry.data.annotation || "";
 
     textarea.addEventListener("click", (e) => e.stopPropagation());
@@ -260,6 +279,14 @@
       }, 0);
     });
 
+    // Footer with hint and remove button
+    const footer = document.createElement("div");
+    footer.className = "tagrelay-popover-footer";
+
+    const hint = document.createElement("span");
+    hint.className = "tagrelay-popover-hint";
+    hint.innerHTML = '<kbd>Enter</kbd> to save';
+
     const removeBtn = document.createElement("button");
     removeBtn.className = "tagrelay-popover-remove";
     removeBtn.textContent = "Remove";
@@ -274,8 +301,12 @@
       }
     });
 
+    footer.appendChild(hint);
+    footer.appendChild(removeBtn);
+
     editArea.appendChild(textarea);
-    editArea.appendChild(removeBtn);
+    editArea.appendChild(footer);
+    popover.appendChild(header);
     popover.appendChild(preview);
     popover.appendChild(editArea);
 
@@ -438,7 +469,15 @@
   }
 
   function updateFabCount() {
-    fab.textContent = taggedElements.length > 0 ? String(taggedElements.length) : "TR";
+    if (taggedElements.length > 0) {
+      fab.textContent = String(taggedElements.length);
+      fab.style.backgroundImage = "none";
+    } else {
+      fab.textContent = "";
+      const iconUrl = chrome.runtime.getURL("icons/fab_icon.png");
+      fab.style.backgroundImage = `url("${iconUrl}")`;
+      fab.style.backgroundSize = "100%";
+    }
     updateClearButton();
   }
 

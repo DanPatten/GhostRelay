@@ -3,8 +3,14 @@
   "name": "TagRelay",
   "version": "1.0.0",
   "description": "Tag browser elements and relay them to AI coding assistants via MCP",
-  "permissions": ["activeTab", "storage", "tabs"],
-  "host_permissions": ["http://localhost/*"],
+  "permissions": [
+    "activeTab",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "http://localhost/*"
+  ],
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
@@ -20,13 +26,31 @@
   },
   "content_scripts": [
     {
-      "matches": ["<all_urls>"],
-      "js": ["content.js"],
-      "css": ["content.css"],
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "content.js"
+      ],
+      "css": [
+        "content.css"
+      ],
       "run_at": "document_idle"
     }
   ],
   "background": {
     "service_worker": "background.js"
-  }
+  },
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "icons/icon48.png",
+        "icons/icon128.png",
+        "icons/fab_icon.png"
+      ],
+      "matches": [
+        "<all_urls>"
+      ]
+    }
+  ]
 }

@@ -6,9 +6,9 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #4A90D9;
-  color: #fff;
-  border: 3px solid transparent;
+  background: #fff;
+  color: #000;
+  border: 1px solid #e0e0e0;
   cursor: pointer;
   z-index: 2147483647;
   display: flex;
@@ -17,7 +17,7 @@
   font-size: 11px;
   font-weight: 700;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   transition: all 0.2s ease;
   line-height: 1;
   user-select: none;
@@ -25,12 +25,13 @@
 
 #tagrelay-fab:hover {
   transform: scale(1.1);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 #tagrelay-fab.active {
-  background: #E8543E;
-  border-color: #fff;
+  background: #fff;
+  color: #4A90D9;
+  border-color: #4A90D9;
   animation: tagrelay-pulse 1.5s ease-in-out infinite;
 }
 
@@ -40,8 +41,15 @@
 }
 
 @keyframes tagrelay-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(232, 84, 62, 0.5); }
-  50% { box-shadow: 0 0 0 10px rgba(232, 84, 62, 0); }
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(74, 144, 217, 0.5);
+  }
+
+  50% {
+    box-shadow: 0 0 0 10px rgba(74, 144, 217, 0);
+  }
 }
 
 /* Clear button (trash icon) */
@@ -60,7 +68,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
   padding: 0;
 }
@@ -68,7 +76,7 @@
 #tagrelay-btn-clear:hover {
   background: #E8543E;
   transform: scale(1.1);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.4);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 /* Hover highlight */
@@ -93,7 +101,7 @@
   padding: 0 5px;
   z-index: 2147483646;
   pointer-events: auto;
-  box-shadow: 0 1px 4px rgba(0,0,0,0.3);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   user-select: none;
   cursor: pointer;
 }
@@ -117,68 +125,137 @@
   z-index: 2147483647;
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 8px;
-  padding: 8px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+  gap: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fb 100%);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 0;
+  box-shadow:
+    0 4px 6px -1px rgba(0, 0, 0, 0.07),
+    0 10px 24px -4px rgba(0, 0, 0, 0.12),
+    0 0 0 1px rgba(0, 0, 0, 0.03);
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  overflow: hidden;
+  animation: tagrelay-popover-in 0.15s ease-out;
+}
+
+@keyframes tagrelay-popover-in {
+  from {
+    opacity: 0;
+    transform: translateY(4px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+/* Popover header bar */
+.tagrelay-popover-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: linear-gradient(135deg, #4A90D9 0%, #5A6ACF 100%);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.3px;
+}
+
+.tagrelay-popover-header-icon {
+  width: 14px;
+  height: 14px;
+  opacity: 0.9;
 }
 
 .tagrelay-popover-preview {
-  font-size: 12px;
-  color: #333;
-  line-height: 1.4;
-  padding: 2px 0;
-  max-width: 200px;
+  font-size: 13px;
+  color: #1a1a2e;
+  line-height: 1.5;
+  padding: 12px 14px;
+  max-width: 280px;
   word-wrap: break-word;
 }
 
 .tagrelay-popover-edit {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 0;
 }
 
 .tagrelay-popover-text {
-  width: 200px;
-  min-height: 56px;
-  max-height: 120px;
-  padding: 6px 8px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 12px;
+  width: 280px;
+  min-height: 80px;
+  max-height: 160px;
+  padding: 12px 14px;
+  border: none;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 0;
+  font-size: 13px;
   font-family: inherit;
   resize: vertical;
   box-sizing: border-box;
-  line-height: 1.4;
+  line-height: 1.5;
+  color: #1a1a2e;
+  background: transparent;
+}
+
+.tagrelay-popover-text::placeholder {
+  color: #a0a3b1;
+  font-style: italic;
 }
 
 .tagrelay-popover-text:focus {
   outline: none;
-  border-color: #4A90D9;
-  box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.2);
+  background: rgba(74, 144, 217, 0.03);
+}
+
+.tagrelay-popover-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 6px 10px;
+  background: #f8f9fb;
+}
+
+.tagrelay-popover-hint {
+  font-size: 10px;
+  color: #a0a3b1;
+  letter-spacing: 0.2px;
+}
+
+.tagrelay-popover-hint kbd {
+  display: inline-block;
+  padding: 1px 4px;
+  background: #e8eaef;
+  border-radius: 3px;
+  font-size: 9px;
+  font-family: inherit;
+  color: #6b6f80;
+  border: 1px solid #d0d3db;
+  box-shadow: 0 1px 0 rgba(0, 0, 0, 0.06);
 }
 
 .tagrelay-popover-remove {
-  background: #f5f5f5;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  color: #666;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  color: #a0a3b1;
   cursor: pointer;
   font-size: 11px;
+  font-weight: 500;
   font-family: inherit;
   line-height: 1;
-  padding: 5px 0;
+  padding: 4px 10px;
   text-align: center;
-  transition: all 0.15s;
+  transition: all 0.15s ease;
 }
 
 .tagrelay-popover-remove:hover {
-  background: #E8543E;
-  border-color: #E8543E;
-  color: #fff;
+  background: #fef2f2;
+  border-color: #fecaca;
+  color: #dc2626;
 }
 
 /* Tagged element outline */
