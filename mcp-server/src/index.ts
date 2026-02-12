@@ -4,7 +4,7 @@ import { createHttpServer } from "./http-server.js";
 import { registerPrompts } from "./prompts.js";
 import { registerTools } from "./tools.js";
 
-const PORT = parseInt(process.env.GHOSTRELAY_PORT ?? "7890", 10);
+const PORT = parseInt(process.env.GHOSTRELAY_PORT ?? "7391", 10);
 
 async function main() {
   const server = new McpServer({

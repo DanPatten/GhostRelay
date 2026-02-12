@@ -6,14 +6,14 @@
   let selectionMode = false;
   let taggedElements = []; // { el, badge, popover, popoverMode, data }
   let hoveredEl = null;
-  let serverPort = 7890;
+  let serverPort = 7391;
   let screenshotEnabled = false;
   let enabled = false;
   let eventSource = null;
   const currentHostname = location.hostname;
 
   // Load settings
-  chrome.storage.sync.get({ port: 7890, screenshot: false, enabledDomains: {} }, (s) => {
+  chrome.storage.sync.get({ port: 7391, screenshot: false, enabledDomains: {} }, (s) => {
     serverPort = s.port;
     screenshotEnabled = s.screenshot;
     enabled = !!(s.enabledDomains || {})[currentHostname];
@@ -62,7 +62,7 @@
   fab.classList.add("ghostrelay-disabled"); // Start hidden until storage loads
   const iconUrl = chrome.runtime.getURL("icons/fab_icon.png");
   fab.style.backgroundImage = `url("${iconUrl}")`;
-  fab.style.backgroundSize = "100%";
+  fab.style.backgroundSize = "contain";
   fab.style.backgroundPosition = "center";
   fab.style.backgroundRepeat = "no-repeat";
   fab.title = "GhostRelay — Click to start tagging elements";
@@ -476,7 +476,7 @@
       fab.textContent = "";
       const iconUrl = chrome.runtime.getURL("icons/fab_icon.png");
       fab.style.backgroundImage = `url("${iconUrl}")`;
-      fab.style.backgroundSize = "100%";
+      fab.style.backgroundSize = "contain";
     }
     updateClearButton();
   }

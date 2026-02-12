@@ -5,22 +5,23 @@
   <link rel="stylesheet" href="popup.css">
 </head>
 <body>
-  <h1>GhostRelay</h1>
-  <div class="field">
-    <label for="enabled">
-      <input type="checkbox" id="enabled">
-      Enable on <span id="domain">...</span>
-    </label>
+  <div class="popup-header">
+    <img class="popup-header-icon" src="icons/icon128.png" alt="">
+    <h1>GhostRelay</h1>
   </div>
-  <div class="field">
-    <label for="port">MCP Server Port</label>
-    <input type="number" id="port" min="1024" max="65535" value="7890">
-  </div>
-  <div class="field">
-    <label for="screenshot">
-      <input type="checkbox" id="screenshot">
-      Capture element screenshots
-    </label>
+  <div class="popup-content">
+    <div class="field field-toggle">
+      <label for="enabled">
+        <input type="checkbox" id="enabled">
+        <span>Active on this site</span>
+      </label>
+      <span class="field-domain" id="domain">...</span>
+    </div>
+    <div class="popup-divider"></div>
+    <div class="field">
+      <span class="field-label-text">MCP Server Port</span>
+      <input type="number" id="port" min="1024" max="65535" value="7391">
+    </div>
   </div>
   <div id="status"></div>
   <script src="popup.js"></script>

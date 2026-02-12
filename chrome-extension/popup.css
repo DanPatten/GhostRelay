@@ -1,43 +1,172 @@
 body {
-  width: 240px;
-  padding: 12px;
+  width: 260px;
+  padding: 0;
+  margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   font-size: 13px;
-  color: #222;
+  color: #1a1a2e;
+  background: #f8f9fb;
+}
+
+/* Header */
+.popup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px 12px;
+  background: #fff;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.popup-header-icon {
+  width: 22px;
+  height: 22px;
 }
 
 h1 {
-  margin: 0 0 12px 0;
-  font-size: 16px;
-  color: #4A90D9;
+  margin: 0;
+  font-size: 15px;
+  font-weight: 700;
+  color: #1a1a2e;
+  letter-spacing: -0.2px;
 }
 
+/* Content area */
+.popup-content {
+  padding: 12px 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Field groups */
 .field {
-  margin-bottom: 10px;
+  margin: 0;
 }
 
 .field label {
-  display: block;
-  margin-bottom: 4px;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  font-weight: 500;
+  font-size: 13px;
+  color: #1a1a2e;
+  cursor: pointer;
+  line-height: 1.4;
 }
 
+.field-toggle {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-domain {
+  font-size: 11px;
+  color: #8b8fa3;
+  padding-left: 24px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.field-label-text {
+  display: block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: #6b7085;
+  margin-bottom: 5px;
+}
+
+/* Custom checkbox */
+.field input[type="checkbox"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 16px;
+  height: 16px;
+  min-width: 16px;
+  border: 1.5px solid #c8cbd5;
+  border-radius: 4px;
+  background: #fff;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.15s ease;
+  margin: 0;
+}
+
+.field input[type="checkbox"]:checked {
+  background: #4A90D9;
+  border-color: #4A90D9;
+}
+
+.field input[type="checkbox"]:checked::after {
+  content: "";
+  position: absolute;
+  left: 4px;
+  top: 1px;
+  width: 5px;
+  height: 9px;
+  border: solid #fff;
+  border-width: 0 2px 2px 0;
+  transform: rotate(45deg);
+}
+
+.field input[type="checkbox"]:hover {
+  border-color: #4A90D9;
+}
+
+/* Number input */
 .field input[type="number"] {
   width: 100%;
-  padding: 4px 6px;
-  border: 1px solid #ccc;
-  border-radius: 4px;
+  padding: 7px 10px;
+  border: 1.5px solid #e0e2ea;
+  border-radius: 8px;
   font-size: 13px;
+  font-family: inherit;
+  color: #1a1a2e;
+  background: #fff;
   box-sizing: border-box;
+  transition: all 0.15s ease;
+  outline: none;
 }
 
-.field input[type="checkbox"] {
-  margin-right: 6px;
-  vertical-align: middle;
+.field input[type="number"]:hover {
+  border-color: #c8cbd5;
 }
 
+.field input[type="number"]:focus {
+  border-color: #4A90D9;
+  box-shadow: 0 0 0 3px rgba(74, 144, 217, 0.1);
+}
+
+/* Divider */
+.popup-divider {
+  height: 1px;
+  background: rgba(0, 0, 0, 0.06);
+  margin: 2px 0;
+}
+
+/* Status bar */
 #status {
-  margin-top: 8px;
+  margin: 0;
+  padding: 0;
   font-size: 11px;
-  color: #666;
+  color: #6b7085;
+  background: transparent;
+  letter-spacing: 0.2px;
+}
+
+#status:not(:empty) {
+  padding: 6px 16px 10px;
+}
+
+#status.connected {
+  color: #16a34a;
+}
+
+#status.disconnected {
+  color: #dc2626;
 }

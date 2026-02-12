@@ -15,7 +15,7 @@ chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
   }
   domainSpan.textContent = currentHostname || "(unknown)";
 
-  chrome.storage.sync.get({ enabledDomains: {}, port: 7890, screenshot: false }, (s) => {
+  chrome.storage.sync.get({ enabledDomains: {}, port: 7391, screenshot: false }, (s) => {
     enabledInput.checked = currentHostname ? !!s.enabledDomains[currentHostname] : false;
     enabledInput.disabled = !currentHostname;
     portInput.value = s.port;
@@ -58,13 +58,13 @@ function checkConnection(port) {
         return r.json().then((data) => {
           const count = data.tags ? data.tags.length : 0;
           statusEl.textContent = `Connected — ${count} tag(s)`;
-          statusEl.style.color = "#2a2";
+          statusEl.className = "connected";
         });
       }
       throw new Error("Bad response");
     })
     .catch(() => {
       statusEl.textContent = "Server not reachable";
-      statusEl.style.color = "#c33";
+      statusEl.className = "disconnected";
     });
 }

@@ -61,7 +61,7 @@ For tools that require manual config, add this block:
       "command": "node",
       "args": ["<full-path-to-repo>/mcp-server/dist/index.js"],
       "env": {
-        "GHOSTRELAY_PORT": "7890"
+        "GHOSTRELAY_PORT": "7391"
       }
     }
   }
@@ -111,7 +111,7 @@ Click the GhostRelay icon in your Chrome toolbar:
 | Setting | Default | Description |
 |---------|---------|-------------|
 | **Enable GhostRelay on pages** | Off | Shows the floating button on all pages when enabled |
-| **Server Port** | `7890` | Must match `GHOSTRELAY_PORT` in your MCP config |
+| **Server Port** | `7391` | Must match `GHOSTRELAY_PORT` in your MCP config |
 | **Element Screenshots** | Off | When on, each tag includes a cropped PNG of the element |
 
 ---

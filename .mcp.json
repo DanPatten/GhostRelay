@@ -3,7 +3,7 @@
     "ghostrelay": {
       "command": "node",
       "args": ["./mcp-server/dist/index.js"],
-      "env": { "GHOSTRELAY_PORT": "7890" }
+      "env": { "GHOSTRELAY_PORT": "7391" }
     }
   }
 }
