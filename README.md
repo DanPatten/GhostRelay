@@ -22,7 +22,7 @@
 
 Ask your AI assistant:
 
-> **Install the MCP server at https://github.com/DanPatten/GhostRelay — after installing, also copy the `.claude/skills/` folder from the cloned repo into my project so I get the `/gr` shortcut command.**
+> **Install the MCP server at https://github.com/DanPatten/GhostRelay
 
 ### 2. Install the Chrome Extension
 
