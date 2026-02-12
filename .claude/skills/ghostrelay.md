@@ -13,7 +13,7 @@ You are helping the user work with elements they've tagged in their browser usin
 1. **Check for tags** — Call the `ghostrelay_get_status` MCP tool.
 
 2. **If no tags exist**, reply with:
-   > No tagged elements found. Open a page in Chrome, click the GhostRelay floating button to enter tagging mode, then click the elements you want to work with. Run `/ghostrelay` again when ready.
+   > No tagged elements found. Open a page in Chrome, click the GhostRelay floating button to enter tagging mode, then click the elements you want to work with. Run `/gr` again when ready.
 
    Then stop.
 

@@ -72,6 +72,35 @@ Then add this to your tool's MCP config:
 
 ---
 
+## Usage
+
+Once installed, tag elements in Chrome using the GhostRelay extension, then tell your AI assistant to apply changes.
+
+### Claude Code
+
+Use the `/gr` shortcut command (or `/ghostrelay`):
+
+```
+/gr make the header background dark blue
+```
+
+```
+/gr
+```
+
+When called without instructions, GhostRelay infers intent from the tagged elements and any annotations you added in the browser.
+
+### Other AI Tools
+
+Most MCP-compatible tools (Cursor, Cline, Windsurf, etc.) can use GhostRelay in two ways:
+
+- **MCP Prompt** — Invoke the `ghostrelay` prompt template, optionally passing a `context` argument describing what to change. The prompt guides the assistant through the full workflow automatically.
+- **MCP Tools** — Call the tools directly: `get_status` to check for tags, `get_tagged_elements` to retrieve element data, and `clear_tags` to clean up afterward.
+
+Refer to your tool's documentation for how to invoke MCP prompts and tools.
+
+---
+
 ## Features
 
 - **Point-and-click tagging** — hover to highlight, click to tag any element on any webpage
@@ -80,3 +109,11 @@ Then add this to your tool's MCP config:
 - **MCP integration** — your AI assistant picks up tags, snips, selectors, HTML, and context automatically
 - **Multi-page support** — tag and snip across different pages, everything stays in sync
 - **Zero config** — enable per-site from the extension popup, no API keys needed
+
+---
+
+<p align="center">
+  <a href="https://buymeacoffee.com/danpatten0">
+    <img src="https://img.buymeacoffee.com/button-api/?text=Buy me a coffee&emoji=&slug=danpatten0&button_colour=5F7FFF&font_colour=ffffff&font_family=Poppins&outline_colour=000000&coffee_colour=FFDD00" alt="Buy Me A Coffee">
+  </a>
+</p>
