@@ -8,11 +8,15 @@ export function registerTools(server: McpServer) {
     {},
     async () => {
       const tags = store.getAllTags();
+      const hasScreenshots = tags.some((t) => t.screenshot);
+      const hint = hasScreenshots
+        ? "View screenshots using the Read tool with the file paths in the screenshot fields below.\n\n"
+        : "";
       return {
         content: [
           {
             type: "text" as const,
-            text: JSON.stringify({ tags }, null, 2),
+            text: hint + JSON.stringify({ tags }, null, 2),
           },
         ],
       };

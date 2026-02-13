@@ -877,9 +877,32 @@
     document.documentElement.appendChild(annotationCanvas);
     annotationCtx = annotationCanvas.getContext("2d");
 
+    // Capture screenshot background before enabling interaction
+    chrome.runtime.sendMessage({ type: "capture-screenshot" }, (response) => {
+      if (response && response.dataUrl) {
+        const img = new Image();
+        img.onload = () => {
+          annotationCtx.drawImage(
+            img,
+            bounds.x * dpr, bounds.y * dpr,
+            bounds.width * dpr, bounds.height * dpr,
+            0, 0,
+            bounds.width * dpr, bounds.height * dpr
+          );
+          enableAnnotationInteraction(bounds);
+        };
+        img.src = response.dataUrl;
+      } else {
+        // Fallback: allow annotation even without background
+        enableAnnotationInteraction(bounds);
+      }
+    });
+  }
+
+  function enableAnnotationInteraction(bounds) {
     // Create floating toolbar
     editingSnipEntry = null;
-    inlineToolbar = buildInlineToolbar(bounds, () => saveInlineAnnotation(), () => closeInlineAnnotation());
+    inlineToolbar = buildInlineToolbar(bounds, () => saveInlineAnnotation(), () => closeInlineAnnotation(), () => closeInlineAnnotation());
 
     // Canvas event handlers
     annotationCanvas.addEventListener("mousedown", onAnnotationMouseDown);

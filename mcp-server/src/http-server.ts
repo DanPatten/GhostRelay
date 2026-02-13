@@ -1,6 +1,39 @@
 import express, { Request, Response } from "express";
 import cors from "cors";
+import fs from "fs";
+import path from "path";
 import { store, TaggedElement } from "./store.js";
+
+const screenshotsDir = path.resolve("screenshots");
+
+function ensureScreenshotsDir() {
+  if (!fs.existsSync(screenshotsDir)) {
+    fs.mkdirSync(screenshotsDir, { recursive: true });
+  }
+}
+
+function cleanupScreenshots() {
+  if (fs.existsSync(screenshotsDir)) {
+    for (const file of fs.readdirSync(screenshotsDir)) {
+      fs.unlinkSync(path.join(screenshotsDir, file));
+    }
+  }
+}
+
+function saveScreenshot(element: TaggedElement, index: number): void {
+  if (!element.screenshot || !element.screenshot.startsWith("data:image/")) return;
+
+  ensureScreenshotsDir();
+
+  const base64Data = element.screenshot.replace(/^data:image\/\w+;base64,/, "");
+  const type = element.type ?? "tag";
+  const timestamp = Date.now();
+  const filename = `${type}-${index}-${timestamp}.png`;
+  const filepath = path.join(screenshotsDir, filename);
+
+  fs.writeFileSync(filepath, Buffer.from(base64Data, "base64"));
+  element.screenshot = filepath;
+}
 
 export function createHttpServer(port: number) {
   const app = express();
@@ -26,6 +59,7 @@ export function createHttpServer(port: number) {
       res.status(400).json({ error: "pageURL and elements[] required" });
       return;
     }
+    elements.forEach((el, i) => saveScreenshot(el, i));
     store.setTags(pageURL, elements);
     broadcast("update", { count: store.getTagCount() });
     res.json({ ok: true, count: store.getTagCount() });
@@ -57,8 +91,9 @@ export function createHttpServer(port: number) {
     });
   });
 
-  // Wire up store clear events to SSE broadcast
+  // Wire up store clear events to SSE broadcast and screenshot cleanup
   store.onClear(() => {
+    cleanupScreenshots();
     broadcast("clear");
   });
 
