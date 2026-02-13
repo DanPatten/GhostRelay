@@ -58,25 +58,6 @@
       clearAllSnips();
       if (currentMode) exitMode();
     });
-    eventSource.addEventListener("processing", (e) => {
-      try {
-        const { indices } = JSON.parse(e.data);
-        if (!Array.isArray(indices)) return;
-        const indexSet = new Set(indices);
-        for (const t of taggedElements) {
-          if (indexSet.has(t.data.index)) {
-            t.badge.classList.add("ghostrelay-processing");
-            hidePopover(t, true);
-          }
-        }
-        for (const s of snippedElements) {
-          if (indexSet.has(s.data.index)) {
-            s.badge.classList.add("ghostrelay-processing");
-            hidePopover(s, true);
-          }
-        }
-      } catch {}
-    });
     eventSource.addEventListener("remove", (e) => {
       try {
         const { indices } = JSON.parse(e.data);
@@ -808,7 +789,6 @@
     badge.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
-      if (badge.classList.contains("ghostrelay-processing")) return;
       clearTimeout(popoverHideTimeout);
       showPopover(entry, "edit", "tag");
     });
@@ -881,7 +861,6 @@
     badge.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
-      if (badge.classList.contains("ghostrelay-processing")) return;
       editSnip(entry);
     });
 

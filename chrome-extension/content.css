@@ -147,18 +147,6 @@
   cursor: pointer;
 }
 
-/* Processing state — pulsing glow when AI is working on this element */
-.ghostrelay-badge.ghostrelay-processing,
-.ghostrelay-badge-snip.ghostrelay-processing {
-  animation: ghostrelay-processing-pulse 1.5s ease-in-out infinite;
-  pointer-events: none;
-}
-
-@keyframes ghostrelay-processing-pulse {
-  0%, 100% { box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.8), 0 1px 4px rgba(0,0,0,0.3); }
-  50% { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3), 0 0 12px rgba(74, 144, 217, 0.4); }
-}
-
 /* Annotation dot indicator on badge */
 .ghostrelay-badge.has-annotation::after {
   content: "";

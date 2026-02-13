@@ -42,8 +42,6 @@ class TagStore {
   private tags: Map<string, TaggedElement[]> = new Map();
   private clearListeners: Set<ClearListener> = new Set();
   private eventListeners: Set<EventListener> = new Set();
-  private processingIndices: Set<number> = new Set();
-
   setTags(pageURL: string, elements: TaggedElement[]): void {
     if (elements.length === 0) {
       this.tags.delete(pageURL);
@@ -76,13 +74,6 @@ class TagStore {
     return Array.from(this.tags.keys());
   }
 
-  markProcessing(indices: number[]): void {
-    for (const i of indices) {
-      this.processingIndices.add(i);
-    }
-    this.emitEvent("processing", { indices });
-  }
-
   removeByIndices(indices: number[]): TaggedElement[] {
     const removed: TaggedElement[] = [];
     const indexSet = new Set(indices);
@@ -101,16 +92,12 @@ class TagStore {
         this.tags.set(pageURL, kept);
       }
     }
-    for (const i of indices) {
-      this.processingIndices.delete(i);
-    }
     this.emitEvent("remove", { indices });
     return removed;
   }
 
   clear(): void {
     this.tags.clear();
-    this.processingIndices.clear();
     for (const listener of this.clearListeners) {
       listener();
     }

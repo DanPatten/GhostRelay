@@ -97,11 +97,9 @@ export function createHttpServer(port: number) {
     broadcast("clear");
   });
 
-  // Wire up processing and remove events to SSE
+  // Wire up remove events to SSE
   store.onEvent((event, data) => {
-    if (event === "processing") {
-      broadcast("processing", data);
-    } else if (event === "remove") {
+    if (event === "remove") {
       const { indices } = data as { indices: number[] };
       // Clean up screenshot files for removed elements
       if (fs.existsSync(screenshotsDir)) {
