@@ -6,6 +6,7 @@
   let currentMode = null; // null | 'tag' | 'snip'
   let selectionMode = false; // tag mode active (kept for backward compat with event handlers)
   let radialMenuOpen = false;
+  let serverConnected = false;
   let lastMode = "tag";
   let taggedElements = []; // { el, badge, popover, popoverMode, data }
   let snippedElements = []; // { badge, popover, popoverMode, data }
@@ -57,9 +58,76 @@
       clearAllSnips();
       if (currentMode) exitMode();
     });
-    eventSource.onerror = () => {
-      // Silently retry — EventSource auto-reconnects
+    eventSource.addEventListener("processing", (e) => {
+      try {
+        const { indices } = JSON.parse(e.data);
+        if (!Array.isArray(indices)) return;
+        const indexSet = new Set(indices);
+        for (const t of taggedElements) {
+          if (indexSet.has(t.data.index)) {
+            t.badge.classList.add("ghostrelay-processing");
+            hidePopover(t, true);
+          }
+        }
+        for (const s of snippedElements) {
+          if (indexSet.has(s.data.index)) {
+            s.badge.classList.add("ghostrelay-processing");
+            hidePopover(s, true);
+          }
+        }
+      } catch {}
+    });
+    eventSource.addEventListener("remove", (e) => {
+      try {
+        const { indices } = JSON.parse(e.data);
+        if (!Array.isArray(indices)) return;
+        const indexSet = new Set(indices);
+        // Remove matching tagged elements (iterate backwards for safe splicing)
+        for (let i = taggedElements.length - 1; i >= 0; i--) {
+          if (indexSet.has(taggedElements[i].data.index)) {
+            const t = taggedElements[i];
+            t.badge.remove();
+            if (t.popover) t.popover.remove();
+            t.el.classList.remove("ghostrelay-tagged");
+            taggedElements.splice(i, 1);
+          }
+        }
+        // Remove matching snipped elements
+        for (let i = snippedElements.length - 1; i >= 0; i--) {
+          if (indexSet.has(snippedElements[i].data.index)) {
+            const s = snippedElements[i];
+            s.badge.remove();
+            if (s.regionBox) s.regionBox.remove();
+            if (s.canvas) s.canvas.remove();
+            if (s.popover) s.popover.remove();
+            snippedElements.splice(i, 1);
+          }
+        }
+        updateFabCount();
+      } catch {}
+    });
+    eventSource.onopen = () => {
+      serverConnected = true;
+      updateConnectionState();
     };
+    eventSource.onerror = () => {
+      serverConnected = false;
+      updateConnectionState();
+    };
+  }
+
+  function updateConnectionState() {
+    fab.classList.toggle("ghostrelay-disconnected", !serverConnected);
+    tagBtn.classList.toggle("ghostrelay-disconnected", !serverConnected);
+    snipBtn.classList.toggle("ghostrelay-disconnected", !serverConnected);
+    hideTooltip();
+    if (!serverConnected) {
+      if (currentMode) exitMode();
+      if (radialMenuOpen) {
+        radialMenu.style.display = "none";
+        radialMenuOpen = false;
+      }
+    }
   }
 
   // --- Floating Action Button ---
@@ -71,10 +139,11 @@
   fab.style.backgroundSize = "contain";
   fab.style.backgroundPosition = "center";
   fab.style.backgroundRepeat = "no-repeat";
-  fab.title = "GhostRelay — Click to toggle";
   fab.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
+    hideTooltip();
+    if (!serverConnected) return;
     if (radialMenuOpen) {
       if (currentMode) exitMode();
       radialMenu.style.display = "none";
@@ -98,10 +167,10 @@
   const tagBtn = document.createElement("button");
   tagBtn.className = "ghostrelay-radial-btn";
   tagBtn.innerHTML = tagSvg;
-  tagBtn.title = "Tag elements";
   tagBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!serverConnected) return;
     if (currentMode === "tag") {
       exitMode();
     } else {
@@ -113,10 +182,10 @@
   const snipBtn = document.createElement("button");
   snipBtn.className = "ghostrelay-radial-btn";
   snipBtn.innerHTML = scissorsSvg;
-  snipBtn.title = "Snip screen region";
   snipBtn.addEventListener("click", (e) => {
     e.stopPropagation();
     e.preventDefault();
+    if (!serverConnected) return;
     if (currentMode === "snip") {
       exitMode();
     } else {
@@ -179,7 +248,6 @@
   const btnClear = document.createElement("button");
   btnClear.id = "ghostrelay-btn-clear";
   btnClear.innerHTML = '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1.5 14a2 2 0 0 1-2 2h-7a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
-  btnClear.title = "Clear all tags and snips";
   btnClear.style.display = "none";
   btnClear.addEventListener("click", (e) => {
     e.stopPropagation();
@@ -194,6 +262,41 @@
     const hasItems = taggedElements.length > 0 || snippedElements.length > 0;
     btnClear.style.display = hasItems ? "flex" : "none";
   }
+
+  // --- Custom Tooltips (replaces native title) ---
+  const tooltip = document.createElement("div");
+  tooltip.className = "ghostrelay-tooltip";
+  document.documentElement.appendChild(tooltip);
+
+  function showTooltip(anchor, text) {
+    tooltip.textContent = text;
+    tooltip.classList.add("visible");
+    const rect = anchor.getBoundingClientRect();
+    const tw = tooltip.offsetWidth;
+    const th = tooltip.offsetHeight;
+    const gap = 6;
+    let top = rect.top - th - gap;
+    let left = rect.left + rect.width / 2 - tw / 2;
+    if (top < 4) top = rect.bottom + gap;
+    left = Math.max(4, Math.min(left, window.innerWidth - tw - 4));
+    tooltip.style.top = `${top}px`;
+    tooltip.style.left = `${left}px`;
+  }
+
+  function hideTooltip() {
+    tooltip.classList.remove("visible");
+  }
+
+  function attachTooltip(el, getText) {
+    el.removeAttribute("title");
+    el.addEventListener("mouseenter", () => showTooltip(el, getText()));
+    el.addEventListener("mouseleave", hideTooltip);
+  }
+
+  attachTooltip(fab, () => serverConnected ? "Click to toggle GhostRelay" : "Server not connected");
+  attachTooltip(tagBtn, () => "Tag elements");
+  attachTooltip(snipBtn, () => "Snip screen region");
+  attachTooltip(btnClear, () => "Clear all tags and snips");
 
   // --- Unique CSS Selector Generator ---
   function getSelector(el) {
@@ -247,6 +350,114 @@
     return ancestors.length > 0 ? ancestors : undefined;
   }
 
+  // --- Source Info Helpers ---
+  const sourceMapCache = new Map(); // href → { sources: string[] } | null
+
+  function getReactSource(el) {
+    const key = Object.keys(el).find(k => k.startsWith('__reactFiber$') || k.startsWith('__reactInternalInstance$'));
+    if (!key) return undefined;
+    let fiber = el[key];
+    for (let i = 0; i < 20 && fiber; i++) {
+      if (fiber._debugSource) {
+        return {
+          framework: 'react',
+          fileName: fiber._debugSource.fileName,
+          lineNumber: fiber._debugSource.lineNumber,
+          columnNumber: fiber._debugSource.columnNumber,
+          componentName: typeof fiber.type === 'function'
+            ? (fiber.type.displayName || fiber.type.name)
+            : undefined,
+        };
+      }
+      fiber = fiber.return;
+    }
+    return undefined;
+  }
+
+  function getVueSource(el) {
+    const vm = el.__vue__ || el.__vueParentComponent;
+    if (!vm) return undefined;
+    const file = vm.$options && vm.$options.__file
+      ? vm.$options.__file
+      : vm.type && vm.type.__file
+        ? vm.type.__file
+        : undefined;
+    if (!file) return undefined;
+    const name = vm.$options && vm.$options.name
+      ? vm.$options.name
+      : vm.type && vm.type.name
+        ? vm.type.name
+        : undefined;
+    return {
+      framework: 'vue',
+      fileName: file,
+      componentName: name,
+    };
+  }
+
+  function getMatchedStylesheets(el) {
+    const matched = [];
+    try {
+      for (const sheet of document.styleSheets) {
+        if (!sheet.href) continue;
+        try {
+          for (const rule of sheet.cssRules) {
+            if (rule.selectorText && el.matches(rule.selectorText)) {
+              matched.push(sheet.href);
+              break;
+            }
+          }
+        } catch { /* cross-origin sheet — skip */ }
+      }
+    } catch { /* no stylesheets */ }
+    return matched.length > 0 ? [...new Set(matched)] : undefined;
+  }
+
+  async function fetchSourceMap(href) {
+    if (sourceMapCache.has(href)) return sourceMapCache.get(href);
+    try {
+      const css = await fetch(href).then(r => r.text());
+      const match = css.match(/\/\*#\s*sourceMappingURL=(.+?)\s*\*\//);
+      if (!match) { sourceMapCache.set(href, null); return null; }
+      let mapUrl = match[1];
+      let mapData;
+      if (mapUrl.startsWith('data:')) {
+        mapData = JSON.parse(atob(mapUrl.split(',')[1]));
+      } else {
+        mapUrl = new URL(mapUrl, href).href;
+        mapData = await fetch(mapUrl).then(r => r.json());
+      }
+      const result = { sources: mapData.sources || [] };
+      sourceMapCache.set(href, result);
+      return result;
+    } catch { sourceMapCache.set(href, null); return null; }
+  }
+
+  function getSourceInfo(el) {
+    const component = getReactSource(el) || getVueSource(el);
+    const hrefs = getMatchedStylesheets(el);
+    const stylesheets = hrefs ? hrefs.map(href => ({ href })) : undefined;
+    if (!component && !stylesheets) return undefined;
+    const info = {};
+    if (component) info.component = component;
+    if (stylesheets) info.stylesheets = stylesheets;
+    return info;
+  }
+
+  async function resolveStylesheetSources(entry) {
+    const sheets = entry.data.sourceInfo && entry.data.sourceInfo.stylesheets;
+    if (!sheets || sheets.length === 0) return;
+    let changed = false;
+    for (const sheet of sheets) {
+      const result = await fetchSourceMap(sheet.href);
+      if (result && result.sources.length > 0) {
+        sheet.sourceFiles = result.sources;
+        changed = true;
+      }
+    }
+    if (changed) syncTags();
+  }
+
   // --- UI Detection ---
   function isGhostRelayUI(el) {
     if (!el || !el.closest) return false;
@@ -260,7 +471,8 @@
       el.closest(".ghostrelay-radial-menu") ||
       el.closest(".ghostrelay-inline-toolbar") ||
       el.closest(".ghostrelay-inline-canvas") ||
-      el.closest(".ghostrelay-snip-region")
+      el.closest(".ghostrelay-snip-region") ||
+      el.closest(".ghostrelay-tooltip")
     );
   }
 
@@ -499,6 +711,42 @@
   }
 
   let popoverHideTimeout = null;
+  function getComputedStyles(el) {
+    const cs = window.getComputedStyle(el);
+    const pick = (props) => {
+      const result = {};
+      for (const p of props) {
+        const v = cs.getPropertyValue(p);
+        if (v && v !== 'none' && v !== 'normal' && v !== 'auto') result[p] = v;
+      }
+      return result;
+    };
+    return {
+      ...pick([
+        // Typography
+        'font-family', 'font-size', 'font-weight', 'line-height',
+        'letter-spacing', 'text-align', 'text-decoration', 'text-transform', 'color',
+        // Box model
+        'display', 'position', 'width', 'height',
+        'padding-top', 'padding-right', 'padding-bottom', 'padding-left',
+        'margin-top', 'margin-right', 'margin-bottom', 'margin-left',
+        // Border
+        'border-top-width', 'border-right-width', 'border-bottom-width', 'border-left-width',
+        'border-top-color', 'border-right-color', 'border-bottom-color', 'border-left-color',
+        'border-top-style', 'border-right-style', 'border-bottom-style', 'border-left-style',
+        'border-radius',
+        // Background
+        'background-color', 'background-image',
+        // Flex/Grid
+        'flex-direction', 'justify-content', 'align-items', 'gap',
+        'grid-template-columns', 'grid-template-rows',
+        // Visual
+        'opacity', 'box-shadow', 'overflow', 'z-index', 'cursor',
+        'transition', 'transform',
+      ]),
+    };
+  }
+
   // --- Tag Management ---
   function addTag(el) {
     const index = nextIndex++;
@@ -530,11 +778,18 @@
       attributes: getAttributes(el),
       parentContext: getParentContext(el),
       pageTitle: document.title,
+      sourceInfo: getSourceInfo(el),
+      computedStyles: getComputedStyles(el),
     };
 
     const entry = { el, badge, popover: null, popoverMode: null, data };
     taggedElements.push(entry);
     updateFabCount();
+
+    // Async: resolve CSS source maps and patch tag data
+    if (data.sourceInfo && data.sourceInfo.stylesheets) {
+      resolveStylesheetSources(entry);
+    }
 
     showPopover(entry, "edit", "tag");
 
@@ -553,6 +808,7 @@
     badge.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
+      if (badge.classList.contains("ghostrelay-processing")) return;
       clearTimeout(popoverHideTimeout);
       showPopover(entry, "edit", "tag");
     });
@@ -568,24 +824,16 @@
     if (entry.popover) entry.popover.remove();
     entry.el.classList.remove("ghostrelay-tagged");
     taggedElements.splice(idx, 1);
-    renumberAll();
     updateFabCount();
   }
 
-  function renumberAll() {
-    const all = [
-      ...taggedElements.map((t) => ({ entry: t, type: "tag" })),
-      ...snippedElements.map((s) => ({ entry: s, type: "snip" })),
-    ].sort((a, b) => (a.entry.data.timestamp || "").localeCompare(b.entry.data.timestamp || ""));
-    all.forEach((item, i) => {
-      item.entry.data.index = i + 1;
-      item.entry.badge.textContent = String(i + 1);
-      if (item.type === "tag") {
-        positionBadge(item.entry.badge, item.entry.el);
-        if (item.entry.popover) positionPopover(item.entry.popover, item.entry.badge);
+  function repositionAllBadges() {
+    for (const t of taggedElements) {
+      positionBadge(t.badge, t.el);
+      if (t.popover && t.popover.style.display !== "none") {
+        positionPopover(t.popover, t.badge);
       }
-    });
-    nextIndex = all.length + 1;
+    }
   }
 
   function clearAllTags() {
@@ -633,6 +881,7 @@
     badge.addEventListener("click", (e) => {
       e.stopPropagation();
       e.preventDefault();
+      if (badge.classList.contains("ghostrelay-processing")) return;
       editSnip(entry);
     });
 
@@ -651,7 +900,7 @@
   }
 
   function renumberSnipBadges() {
-    renumberAll();
+    // No-op: indices are stable identifiers, no renumbering needed
   }
 
   function clearAllSnips() {

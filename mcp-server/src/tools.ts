@@ -1,4 +1,5 @@
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { z } from "zod";
 import { store } from "./store.js";
 
 export function registerTools(server: McpServer) {
@@ -24,6 +25,8 @@ export function registerTools(server: McpServer) {
           pageURL: t.pageURL,
           pageTitle: t.pageTitle,
           boundingBox: t.boundingBox,
+          computedStyles: t.computedStyles,
+          sourceInfo: t.sourceInfo,
         };
       });
       const hasScreenshots = compact.some((t) => t.screenshot);
@@ -70,6 +73,40 @@ export function registerTools(server: McpServer) {
           {
             type: "text" as const,
             text: JSON.stringify({ count, urls }, null, 2),
+          },
+        ],
+      };
+    }
+  );
+
+  server.tool(
+    "mark_processing",
+    "Mark tagged elements as being processed by the AI. Badges will show a pulsing animation in the browser.",
+    { indices: z.array(z.number()).describe("Array of element indices to mark as processing") },
+    async ({ indices }) => {
+      store.markProcessing(indices);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Marked ${indices.length} element(s) as processing.`,
+          },
+        ],
+      };
+    }
+  );
+
+  server.tool(
+    "clear_processed",
+    "Remove only the specified tagged elements (by index) that have been processed. New tags added during processing are preserved.",
+    { indices: z.array(z.number()).describe("Array of element indices to remove") },
+    async ({ indices }) => {
+      const removed = store.removeByIndices(indices);
+      return {
+        content: [
+          {
+            type: "text" as const,
+            text: `Removed ${removed.length} processed element(s). Remaining: ${store.getTagCount()}.`,
           },
         ],
       };

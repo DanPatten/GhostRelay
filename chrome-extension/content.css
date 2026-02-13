@@ -54,6 +54,23 @@
   display: none !important;
 }
 
+/* Disconnected from server */
+#ghostrelay-fab.ghostrelay-disconnected {
+  opacity: 0.4;
+  cursor: not-allowed;
+  pointer-events: auto;
+}
+
+#ghostrelay-fab.ghostrelay-disconnected:hover {
+  transform: none;
+}
+
+.ghostrelay-radial-btn.ghostrelay-disconnected {
+  opacity: 0.35;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 @keyframes ghostrelay-pulse {
 
   0%,
@@ -128,6 +145,18 @@
   box-shadow: 0 1px 4px rgba(0, 0, 0, 0.3);
   user-select: none;
   cursor: pointer;
+}
+
+/* Processing state — pulsing glow when AI is working on this element */
+.ghostrelay-badge.ghostrelay-processing,
+.ghostrelay-badge-snip.ghostrelay-processing {
+  animation: ghostrelay-processing-pulse 1.5s ease-in-out infinite;
+  pointer-events: none;
+}
+
+@keyframes ghostrelay-processing-pulse {
+  0%, 100% { box-shadow: 0 0 0 2px rgba(74, 144, 217, 0.8), 0 1px 4px rgba(0,0,0,0.3); }
+  50% { box-shadow: 0 0 0 4px rgba(74, 144, 217, 0.3), 0 0 12px rgba(74, 144, 217, 0.4); }
 }
 
 /* Annotation dot indicator on badge */
@@ -562,6 +591,31 @@
 .ghostrelay-inline-canvas-saved {
   pointer-events: none;
   cursor: default;
+}
+
+/* --- Custom Tooltip (replaces native title) --- */
+.ghostrelay-tooltip {
+  position: fixed;
+  z-index: 2147483647;
+  background: rgba(15, 15, 25, 0.92);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 500;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  padding: 5px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.ghostrelay-tooltip.visible {
+  opacity: 1;
 }
 
 .ghostrelay-text-input {

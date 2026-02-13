@@ -97,6 +97,26 @@ export function createHttpServer(port: number) {
     broadcast("clear");
   });
 
+  // Wire up processing and remove events to SSE
+  store.onEvent((event, data) => {
+    if (event === "processing") {
+      broadcast("processing", data);
+    } else if (event === "remove") {
+      const { indices } = data as { indices: number[] };
+      // Clean up screenshot files for removed elements
+      if (fs.existsSync(screenshotsDir)) {
+        for (const file of fs.readdirSync(screenshotsDir)) {
+          // Filenames are like: tag-3-1234567890.png or snip-5-1234567890.png
+          const match = file.match(/^(?:tag|snip)-(\d+)-/);
+          if (match && indices.includes(Number(match[1]))) {
+            fs.unlinkSync(path.join(screenshotsDir, file));
+          }
+        }
+      }
+      broadcast("remove", data);
+    }
+  });
+
   const server = app.listen(port, () => {
     console.error(`[GhostRelay] HTTP server listening on port ${port}`);
   });
