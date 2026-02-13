@@ -82,12 +82,7 @@
     } else {
       radialMenu.style.display = "flex";
       radialMenuOpen = true;
-      const hasItems = taggedElements.length > 0 || snippedElements.length > 0;
-      if (lastMode === "snip" && hasItems) {
-        // Don't auto-start a snip overlay when items are pending
-      } else {
-        enterMode(lastMode);
-      }
+      enterMode(lastMode);
     }
   });
   document.documentElement.appendChild(fab);
@@ -262,7 +257,6 @@
       el.closest(".ghostrelay-badge-snip") ||
       el.closest(".ghostrelay-popover") ||
       el.closest(".ghostrelay-radial-menu") ||
-      el.closest("#ghostrelay-snip-overlay") ||
       el.closest(".ghostrelay-inline-toolbar") ||
       el.closest(".ghostrelay-inline-canvas") ||
       el.closest(".ghostrelay-snip-region")
@@ -504,7 +498,6 @@
   }
 
   let popoverHideTimeout = null;
-
   // --- Tag Management ---
   function addTag(el) {
     const index = nextIndex++;
@@ -715,42 +708,29 @@
   }
 
   // --- Snipping Tool ---
-  let snipOverlay = null;
   let selectionRect = null;
   let snipStartX = 0;
   let snipStartY = 0;
   let snipDragging = false;
-  let snipInstruction = null;
-
   function startSnipOverlay() {
-    snipOverlay = document.createElement("div");
-    snipOverlay.id = "ghostrelay-snip-overlay";
-
-    snipInstruction = document.createElement("div");
-    snipInstruction.className = "ghostrelay-snip-instruction";
-    snipInstruction.textContent = "Click and drag to select a region";
-    snipOverlay.appendChild(snipInstruction);
-
-    document.documentElement.appendChild(snipOverlay);
-
-    snipOverlay.addEventListener("mousedown", onSnipMouseDown);
-    snipOverlay.addEventListener("mousemove", onSnipMouseMove);
-    snipOverlay.addEventListener("mouseup", onSnipMouseUp);
+    document.documentElement.style.cursor = "crosshair";
+    document.addEventListener("mousedown", onSnipMouseDown, true);
+    document.addEventListener("mousemove", onSnipMouseMove, true);
+    document.addEventListener("mouseup", onSnipMouseUp, true);
     document.addEventListener("keydown", onSnipKeyDown);
   }
 
   function removeSnipOverlay() {
-    if (snipOverlay) {
-      snipOverlay.remove();
-      snipOverlay = null;
-    }
+    document.removeEventListener("mousedown", onSnipMouseDown, true);
+    document.removeEventListener("mousemove", onSnipMouseMove, true);
+    document.removeEventListener("mouseup", onSnipMouseUp, true);
+    document.removeEventListener("keydown", onSnipKeyDown);
+    document.documentElement.style.cursor = "";
     if (selectionRect) {
       selectionRect.remove();
       selectionRect = null;
     }
-    snipInstruction = null;
     snipDragging = false;
-    document.removeEventListener("keydown", onSnipKeyDown);
   }
 
   function onSnipKeyDown(e) {
@@ -760,16 +740,40 @@
     }
   }
 
+  function findSnipAtPoint(clientX, clientY) {
+    for (const entry of snippedElements) {
+      const b = entry.data.boundingBox;
+      const sx = entry.data.scrollPosition ? entry.data.scrollPosition.x : 0;
+      const sy = entry.data.scrollPosition ? entry.data.scrollPosition.y : 0;
+      // Convert stored absolute coords back to viewport-relative
+      const vx = b.x + sx - window.scrollX;
+      const vy = b.y + sy - window.scrollY;
+      if (clientX >= vx && clientX <= vx + b.width && clientY >= vy && clientY <= vy + b.height) {
+        return entry;
+      }
+    }
+    return null;
+  }
+
   function onSnipMouseDown(e) {
+    // Let clicks on GhostRelay UI and snip badges pass through
+    if (isGhostRelayUI(e.target)) return;
+
+    // Check if clicking on an existing snip region — open editor instead
+    const hitSnip = findSnipAtPoint(e.clientX, e.clientY);
+    if (hitSnip) {
+      e.preventDefault();
+      e.stopPropagation();
+      removeSnipOverlay();
+      editSnip(hitSnip);
+      return;
+    }
+
     e.preventDefault();
+    e.stopPropagation();
     snipDragging = true;
     snipStartX = e.clientX;
     snipStartY = e.clientY;
-
-    // Fade out instruction
-    if (snipInstruction) {
-      snipInstruction.style.opacity = "0";
-    }
 
     // Create selection rectangle
     if (selectionRect) selectionRect.remove();
@@ -779,11 +783,13 @@
     selectionRect.style.top = `${snipStartY}px`;
     selectionRect.style.width = "0px";
     selectionRect.style.height = "0px";
-    snipOverlay.appendChild(selectionRect);
+    document.documentElement.appendChild(selectionRect);
   }
 
   function onSnipMouseMove(e) {
     if (!snipDragging || !selectionRect) return;
+    e.preventDefault();
+    e.stopPropagation();
     const x = Math.min(e.clientX, snipStartX);
     const y = Math.min(e.clientY, snipStartY);
     const w = Math.abs(e.clientX - snipStartX);
@@ -796,6 +802,8 @@
 
   function onSnipMouseUp(e) {
     if (!snipDragging) return;
+    e.preventDefault();
+    e.stopPropagation();
     snipDragging = false;
 
     const x = Math.min(e.clientX, snipStartX);
@@ -826,6 +834,7 @@
   let inlineRegionBox = null;
   let inlineToolbar = null;
   let editingSnipEntry = null;
+  let suppressNextClick = false;
 
   function onAnnotationClickOutside(e) {
     if (!annotationCanvas && !editingSnipEntry) return;
@@ -845,11 +854,12 @@
     } else {
       saveInlineAnnotation();
     }
+    suppressNextClick = true;
   }
 
   function openInlineAnnotation(bounds) {
-    // Exit snip mode (radial stays open)
-    exitMode();
+    // Pause snip overlay but stay in snip mode
+    removeSnipOverlay();
 
     annotationBounds = bounds;
 
@@ -862,6 +872,7 @@
     inlineRegionBox.style.top = `${bounds.y + scrollY}px`;
     inlineRegionBox.style.width = `${bounds.width}px`;
     inlineRegionBox.style.height = `${bounds.height}px`;
+    inlineRegionBox.classList.add("ghostrelay-focus-overlay");
     document.documentElement.appendChild(inlineRegionBox);
 
     // Create canvas overlay on top of the region (absolute, scroll-adjusted)
@@ -1152,6 +1163,9 @@
     const bounds = annotationBounds;
     const regionBox = inlineRegionBox;
 
+    // Remove focus overlay
+    if (regionBox) regionBox.classList.remove("ghostrelay-focus-overlay");
+
     // Remove event listeners but keep canvas visible
     const savedCanvas = annotationCanvas;
     if (annotationCanvas) {
@@ -1176,6 +1190,8 @@
     annotationColor = "#E8543E";
 
     addSnip(canvasDataUrl, bounds, regionBox, savedCanvas);
+
+    if (currentMode === "snip") startSnipOverlay();
   }
 
   function closeInlineAnnotation() {
@@ -1202,6 +1218,8 @@
     annotationDrawing = false;
     annotationTool = "draw";
     annotationColor = "#E8543E";
+
+    if (currentMode === "snip") startSnipOverlay();
   }
 
   // --- Edit Snip ---
@@ -1212,6 +1230,9 @@
     annotationBounds = entry.data.boundingBox;
     inlineRegionBox = entry.regionBox;
     editingSnipEntry = entry;
+
+    // Show focus overlay
+    if (inlineRegionBox) inlineRegionBox.classList.add("ghostrelay-focus-overlay");
 
     // Restore interactivity
     annotationCanvas.classList.remove("ghostrelay-inline-canvas-saved");
@@ -1239,6 +1260,9 @@
     // Update screenshot data
     entry.data.screenshot = annotationCanvas.toDataURL("image/png");
 
+    // Remove focus overlay
+    if (inlineRegionBox) inlineRegionBox.classList.remove("ghostrelay-focus-overlay");
+
     // Deactivate canvas
     annotationCanvas.removeEventListener("mousedown", onAnnotationMouseDown);
     annotationCanvas.removeEventListener("mousemove", onAnnotationMouseMove);
@@ -1262,10 +1286,15 @@
     annotationColor = "#E8543E";
 
     syncTags();
+
+    if (currentMode === "snip") startSnipOverlay();
   }
 
   function cancelEditSnip(entry) {
     if (!annotationCanvas) return;
+
+    // Remove focus overlay
+    if (inlineRegionBox) inlineRegionBox.classList.remove("ghostrelay-focus-overlay");
 
     annotationCanvas.removeEventListener("mousedown", onAnnotationMouseDown);
     annotationCanvas.removeEventListener("mousemove", onAnnotationMouseMove);
@@ -1288,6 +1317,8 @@
     annotationDrawing = false;
     annotationTool = "draw";
     annotationColor = "#E8543E";
+
+    if (currentMode === "snip") startSnipOverlay();
   }
 
   function removeSnipFromEditor(entry) {
@@ -1319,6 +1350,8 @@
       removeSnip(idx);
       syncTags();
     }
+
+    if (currentMode === "snip") startSnipOverlay();
   }
 
   // --- Sync to server ---
@@ -1367,6 +1400,7 @@
     (e) => {
       if (!selectionMode) return;
       if (isGhostRelayUI(e.target)) return;
+      if (suppressNextClick) { suppressNextClick = false; return; }
       e.preventDefault();
       e.stopPropagation();
 

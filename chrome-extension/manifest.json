@@ -9,7 +9,8 @@
     "tabs"
   ],
   "host_permissions": [
-    "http://localhost/*"
+    "http://localhost/*",
+    "<all_urls>"
   ],
   "action": {
     "default_popup": "popup.html",
